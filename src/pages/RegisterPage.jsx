@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register as registerRequest } from '../services/auth';
-import { useAuth } from '../hooks/useAuth.jsx';
+import { useAuth } from '../hooks/useAuth';
 
 export default function RegisterPage() {
     const { login } = useAuth();
-    const navigate   = useNavigate();
+    const navigate  = useNavigate();
 
     const [form, setForm] = useState({
-        full_name: '', email: '', password: '', role: 'client',
+        username: '', email: '', password: '', is_creator: false, is_buyer: true,
     });
     const [error, setError]     = useState('');
     const [loading, setLoading] = useState(false);
@@ -16,9 +16,15 @@ export default function RegisterPage() {
     const handleChange = e =>
         setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
+    const setRole = (isCreator) => setForm(f => ({
+        ...f,
+        is_creator: isCreator,
+        is_buyer: !isCreator,
+    }));
+
     const handleSubmit = async () => {
         setError('');
-        if (!form.full_name || !form.email || !form.password) {
+        if (!form.username || !form.email || !form.password) {
             setError('Please fill in all fields.');
             return;
         }
@@ -29,12 +35,12 @@ export default function RegisterPage() {
         setLoading(true);
         try {
             const res = await registerRequest(form);
-            const { access, refresh, user } = res.data.data;
+            const { access, refresh, user } = res.data;
             login({ access, refresh }, user);
-            if (user.role === 'creator') navigate('/portfolio');
+            if (user.is_creator) navigate('/portfolio');
             else navigate('/browse');
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed. Please try again.');
+            setError(err.response?.data?.error || 'Registration failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -45,7 +51,7 @@ export default function RegisterPage() {
             <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
 
                 <h1 className="text-2xl font-semibold text-gray-900 mb-1">Create your account</h1>
-                <p className="text-sm text-gray-500 mb-6">Join PIXI as a creator or client</p>
+                <p className="text-sm text-gray-500 mb-6">Join PIXI as a creator or buyer</p>
 
                 {error && (
                     <div className="mb-4 px-4 py-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600">
@@ -55,13 +61,13 @@ export default function RegisterPage() {
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                         <input
                             type="text"
-                            name="full_name"
-                            value={form.full_name}
+                            name="username"
+                            value={form.username}
                             onChange={handleChange}
-                            placeholder="Amira Khan"
+                            placeholder="artlover"
                             className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                         />
                     </div>
@@ -90,16 +96,17 @@ export default function RegisterPage() {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">I am a</label>
                         <div className="grid grid-cols-2 gap-3">
-                            {['client', 'creator'].map(r => (
+                            {[{ label: 'Buyer', isCreator: false }, { label: 'Creator', isCreator: true }].map(r => (
                                 <button
-                                    key={r}
-                                    onClick={() => setForm(f => ({ ...f, role: r }))}
-                                    className={`py-2.5 rounded-lg text-sm font-medium border transition capitalize
-                    ${form.role === r
+                                    key={r.label}
+                                    type="button"
+                                    onClick={() => setRole(r.isCreator)}
+                                    className={`py-2.5 rounded-lg text-sm font-medium border transition
+                                    ${form.is_creator === r.isCreator
                                         ? 'bg-black text-white border-black'
                                         : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}
                                 >
-                                    {r}
+                                    {r.label}
                                 </button>
                             ))}
                         </div>

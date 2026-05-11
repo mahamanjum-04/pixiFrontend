@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login as loginRequest } from '../services/auth';
-import { useAuth } from '../hooks/useAuth.jsx';
+import { useAuth } from '../hooks/useAuth';
 
 export default function LoginPage() {
     const { login } = useAuth();
-    const navigate   = useNavigate();
+    const navigate  = useNavigate();
 
-    const [form, setForm]     = useState({ email: '', password: '' });
-    const [error, setError]   = useState('');
+    const [form, setForm]       = useState({ username: '', password: '' });
+    const [error, setError]     = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleChange = e =>
@@ -16,20 +16,19 @@ export default function LoginPage() {
 
     const handleSubmit = async () => {
         setError('');
-        if (!form.email || !form.password) {
+        if (!form.username || !form.password) {
             setError('Please fill in all fields.');
             return;
         }
         setLoading(true);
         try {
             const res = await loginRequest(form);
-            const { access, refresh, user } = res.data.data;
+            const { access, refresh, user } = res.data;
             login({ access, refresh }, user);
-            if (user.role === 'admin')   navigate('/admin');
-            else if (user.role === 'creator') navigate('/portfolio');
+            if (user.is_creator) navigate('/portfolio');
             else navigate('/browse');
         } catch (err) {
-            setError(err.response?.data?.message || 'Invalid email or password.');
+            setError(err.response?.data?.error || 'Invalid username or password.');
         } finally {
             setLoading(false);
         }
@@ -50,13 +49,13 @@ export default function LoginPage() {
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                         <input
-                            type="email"
-                            name="email"
-                            value={form.email}
+                            type="text"
+                            name="username"
+                            value={form.username}
                             onChange={handleChange}
-                            placeholder="you@example.com"
+                            placeholder="your username"
                             className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                         />
                     </div>

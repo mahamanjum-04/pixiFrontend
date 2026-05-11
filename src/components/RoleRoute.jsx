@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.jsx';
+import { useAuth } from '../hooks/useAuth';
 
 export default function RoleRoute({ children, roles }) {
     const { user, loading } = useAuth();
@@ -11,7 +11,13 @@ export default function RoleRoute({ children, roles }) {
     );
 
     if (!user) return <Navigate to="/login" replace />;
-    if (!roles.includes(user.role)) return <Navigate to="/" replace />;
 
+    // Check role using is_creator / is_buyer flags
+    const hasRole =
+        (roles.includes('creator') && user.is_creator) ||
+        (roles.includes('buyer')   && user.is_buyer)   ||
+        (roles.includes('admin')   && user.is_staff);
+
+    if (!hasRole) return <Navigate to="/browse" replace />;
     return children;
 }
