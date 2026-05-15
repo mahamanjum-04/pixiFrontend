@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ReviewForm from '../components/ReviewForm';
 import { getArtwork, updateStatus, deleteArtwork } from '../services/artworks';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth.jsx';
 import api from '../services/api';
 
 export default function ArtworkDetailPage() {

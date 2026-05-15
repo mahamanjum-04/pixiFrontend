@@ -1,1 +1,157 @@
-export default function AdminAnalyticsPage() { return <div className="p-8 text-gray-500">AdminAnalyticsPage</div>; }
+import { useState, useEffect } from 'react';
+import Navbar from '../components/Navbar';
+import {
+    BarChart, Bar, LineChart, Line,
+    XAxis, YAxis, Tooltip, ResponsiveContainer
+} from 'recharts';
+import { getAdminAnalytics } from '../services/admin';
+
+export default function AdminAnalyticsPage() {
+    const [data, setData]       = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError]     = useState('');
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const fetchAnalytics = async () => {
+            try {
+                const res = await getAdminAnalytics();
+                if (!cancelled) setData(res.data);
+            } catch {
+                if (!cancelled) setError('Analytics not available yet.');
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        fetchAnalytics();
+        return () => { cancelled = true; };
+    }, []);
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <Navbar />
+            <div className="max-w-5xl mx-auto px-6 py-8">
+
+                <h1 className="text-2xl font-semibold text-gray-900 mb-6">Platform analytics</h1>
+
+                {/* Loading */}
+                {loading && (
+                    <div className="flex justify-center py-20">
+                        <div className="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin" />
+                    </div>
+                )}
+
+                {/* Error */}
+                {error && (
+                    <div className="text-center py-20 text-gray-400 text-sm">{error}</div>
+                )}
+
+                {!loading && !error && data && (
+                    <>
+                        {/* Stats cards */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                            {[
+                                { label: 'Total users',    value: data.total_users    ?? '—' },
+                                { label: 'Total artworks', value: data.total_artworks ?? '—' },
+                                { label: 'Total sales',    value: data.total_sales    ?? '—' },
+                                { label: 'Total revenue',  value: data.total_revenue ? `$${data.total_revenue}` : '—' },
+                            ].map(s => (
+                                <div key={s.label} className="bg-white border border-gray-100 rounded-xl p-4 text-center">
+                                    <p className="text-2xl font-bold text-gray-900">{s.value}</p>
+                                    <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Sales over time bar chart */}
+                        {data.sales_over_time?.length > 0 && (
+                            <div className="bg-white border border-gray-100 rounded-xl p-6 mb-6">
+                                <p className="text-sm font-medium text-gray-700 mb-4">Sales over time</p>
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <BarChart data={data.sales_over_time}>
+                                        <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                                        <YAxis tick={{ fontSize: 11 }} />
+                                        <Tooltip />
+                                        <Bar dataKey="sales" fill="#111111" radius={[4,4,0,0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
+
+                        {/* New users over time line chart */}
+                        {data.new_users_over_time?.length > 0 && (
+                            <div className="bg-white border border-gray-100 rounded-xl p-6 mb-6">
+                                <p className="text-sm font-medium text-gray-700 mb-4">New users over time</p>
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <LineChart data={data.new_users_over_time}>
+                                        <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                                        <YAxis tick={{ fontSize: 11 }} />
+                                        <Tooltip />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="new_users"
+                                            stroke="#111111"
+                                            strokeWidth={2}
+                                            dot={{ r: 3 }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
+
+                        {/* Top artworks table */}
+                        {data.top_artworks?.length > 0 && (
+                            <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100">
+                                    <p className="text-sm font-medium text-gray-700">Top artworks</p>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                        <tr className="border-b border-gray-100">
+                                            <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">#</th>
+                                            <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Artwork</th>
+                                            <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Creator</th>
+                                            <th className="text-right px-5 py-3 text-xs font-medium text-gray-400">Status</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {data.top_artworks.map((a, i) => (
+                                            <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition">
+                                                <td className="px-5 py-3 text-gray-300 text-xs">{i + 1}</td>
+                                                <td className="px-5 py-3 font-medium text-gray-900">{a.title}</td>
+                                                <td className="px-5 py-3 text-gray-500">{a.creator}</td>
+                                                <td className="px-5 py-3 text-right">
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                a.sold
+                                    ? 'bg-red-50 text-red-500'
+                                    : 'bg-green-50 text-green-600'
+                            }`}>
+                              {a.sold ? 'Sold' : 'Available'}
+                            </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* No data */}
+                        {!data.sales_over_time?.length &&
+                            !data.new_users_over_time?.length &&
+                            !data.top_artworks?.length && (
+                                <div className="bg-white border border-gray-100 rounded-xl p-8 text-center text-gray-400 text-sm">
+                                    No data available yet.
+                                </div>
+                            )}
+                    </>
+                )}
+
+            </div>
+        </div>
+    );
+}

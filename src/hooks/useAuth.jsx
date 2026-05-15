@@ -3,7 +3,7 @@ import { getMe } from '../services/auth';
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
+export function UseAuth({ children }) {
     const [user, setUser]       = useState(null);
     const [loading, setLoading] = useState(true);
 

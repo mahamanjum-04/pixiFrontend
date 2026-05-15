@@ -21,31 +21,37 @@ import ProfilePage          from './pages/ProfilePage';
 export default function App() {
   return (
       <Routes>
-        {/* Public */}
-        <Route path="/login"    element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+            {/* Public */}
+            <Route path="/login"    element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-        {/* Any logged-in user */}
-        <Route path="/browse"        element={<ProtectedRoute><BrowsePage /></ProtectedRoute>} />
-        <Route path="/search"        element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-        <Route path="/artworks/:id"  element={<ProtectedRoute><ArtworkDetailPage /></ProtectedRoute>} />
-        <Route path="/saved"         element={<ProtectedRoute><SavedPage /></ProtectedRoute>} />
-        <Route path="/profile"       element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="/inbox"         element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
-        <Route path="/chat/:roomId"  element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-        <Route path="/purchased"     element={<ProtectedRoute><PurchasedPage /></ProtectedRoute>} />
+            {/* Any logged-in user */}
+            <Route path="/browse"        element={<ProtectedRoute><BrowsePage /></ProtectedRoute>} />
+            <Route path="/search"        element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+            <Route path="/artworks/:id"  element={<ProtectedRoute><ArtworkDetailPage /></ProtectedRoute>} />
+            <Route path="/saved"         element={<ProtectedRoute><SavedPage /></ProtectedRoute>} />
+            <Route path="/profile"       element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/inbox"         element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
+            <Route path="/chat/:roomId"  element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+            <Route path="/purchased"     element={<ProtectedRoute><PurchasedPage /></ProtectedRoute>} />
 
-        {/* Creator only */}
-        <Route path="/upload"    element={<RoleRoute roles={['creator']}><UploadPage /></RoleRoute>} />
-        <Route path="/portfolio" element={<RoleRoute roles={['creator']}><PortfolioPage /></RoleRoute>} />
-        <Route path="/analytics" element={<RoleRoute roles={['creator']}><CreatorAnalyticsPage /></RoleRoute>} />
+            {/* Creator only */}
+            <Route path="/upload"    element={<RoleRoute roles={['creator']}><UploadPage /></RoleRoute>} />
+            <Route path="/portfolio" element={<RoleRoute roles={['creator']}><PortfolioPage /></RoleRoute>} />
+            <Route path="/analytics" element={<RoleRoute roles={['creator']}><CreatorAnalyticsPage /></RoleRoute>} />
 
-        {/* Admin only */}
-        <Route path="/admin"            element={<RoleRoute roles={['admin']}><AdminDashboardPage /></RoleRoute>} />
-        <Route path="/admin/analytics"  element={<RoleRoute roles={['admin']}><AdminAnalyticsPage /></RoleRoute>} />
+            {/* Admin only */}
+            <Route path="/admin"            element={<RoleRoute roles={['admin']}><AdminDashboardPage /></RoleRoute>} />
+            <Route path="/admin/analytics"  element={<RoleRoute roles={['admin']}><AdminAnalyticsPage /></RoleRoute>} />
 
-        {/* Default */}
-        <Route path="/" element={<Navigate to="/browse" replace />} />
+            {/* Default */}
+            <Route path="/" element={<Navigate to="/browse" replace />} />
+
+
+            {/* Chat */}
+            <Route path="/inbox" element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
+            <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+
       </Routes>
   );
 }
