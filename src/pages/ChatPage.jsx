@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { useAuth } from '../hooks/useAuth.jsx';
+import { useAuth } from '../hooks/useAuthContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { getChatHistory } from '../services/messaging';
 import { submitReport } from '../services/admin';

@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ReviewForm from '../components/ReviewForm';
 import { getArtwork, updateStatus, deleteArtwork } from '../services/artworks';
-import { useAuth } from '../hooks/useAuth.jsx';
+import { useAuth } from '../hooks/useAuthContext';
 import api from '../services/api';
+import SafeImage from '../components/SafeImage';
 
 export default function ArtworkDetailPage() {
     const { id }       = useParams();
@@ -58,12 +59,16 @@ export default function ArtworkDetailPage() {
         try {
             if (saved) {
                 await api.delete(`/api/saved/${savedId}/`);
-                setSaved(false); setSavedId(null);
+                setSaved(false);
+                setSavedId(null);
             } else {
-                const res = await api.post('/api/saved/', { artwork: artwork.id });
-                setSaved(true); setSavedId(res.data.id);
+                const res = await api.post('/api/saved/', { artwork: parseInt(id) });
+                setSaved(true);
+                setSavedId(res.data.id);
             }
-        } catch { }
+        } catch (err) {
+            console.error('Save error:', err);
+        }
     };
 
     const handlePurchase = async () => {
@@ -136,10 +141,11 @@ export default function ArtworkDetailPage() {
 
                     {/* Image */}
                     <div className="rounded-2xl overflow-hidden border border-gray-100 bg-white aspect-square">
-                        {artwork.image
-                            ? <img src={artwork.image} alt={artwork.title} className="w-full h-full object-cover" />
-                            : <div className="w-full h-full flex items-center justify-center text-gray-200 text-6xl">🖼</div>
-                        }
+                        <SafeImage
+                            src={artwork.image}
+                            alt={artwork.title}
+                            className="w-full h-full object-cover"
+                        />
                     </div>
 
                     {/* Info */}

@@ -1,12 +1,22 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    if (host.includes('localhost') || host.includes('127.0.0.1')) return 'http://localhost:8000';
+    return `${protocol}//${host}`;
+};
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
+    baseURL: getBaseURL(),
 });
 
 api.interceptors.request.use(config => {
     const token = localStorage.getItem('access_token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    config.headers['ngrok-skip-browser-warning'] = 'true';
+    if (config.data instanceof FormData) delete config.headers['Content-Type'];
     return config;
 });
 
@@ -18,8 +28,9 @@ api.interceptors.response.use(
             original._retry = true;
             try {
                 const refresh = localStorage.getItem('refresh_token');
+                if (!refresh) throw new Error('No refresh token');
                 const { data } = await axios.post(
-                    `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/auth/refresh/`,
+                    `${getBaseURL()}/api/auth/refresh/`,
                     { refresh }
                 );
                 localStorage.setItem('access_token', data.access);

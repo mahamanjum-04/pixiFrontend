@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import SafeImage from './SafeImage';
 
 export default function ArtworkCard({ artwork }) {
     const [saved, setSaved]     = useState(artwork.is_saved || false);
@@ -35,10 +36,11 @@ export default function ArtworkCard({ artwork }) {
 
                 {/* Image */}
                 <div className="relative aspect-square bg-gray-50">
-                    {artwork.image
-                        ? <img src={artwork.image} alt={artwork.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-                        : <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl">🖼</div>
-                    }
+                    <SafeImage
+                        src={artwork.image}
+                        alt={artwork.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                    />
                     <button
                         onClick={toggleSave}
                         className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-sm hover:scale-110 transition"

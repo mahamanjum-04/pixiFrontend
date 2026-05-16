@@ -1,5 +1,5 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.jsx';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuthContext';
 import NotificationBadge from './NotificationBadge';
 
 export default function Navbar() {

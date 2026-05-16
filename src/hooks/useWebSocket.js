@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
+const getWsURL = (roomId) => {
+    if (import.meta.env.VITE_WS_URL) return `${import.meta.env.VITE_WS_URL}/ws/chat/${roomId}/`;
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    if (host.includes('localhost') || host.includes('127.0.0.1')) return `ws://localhost:8000/ws/chat/${roomId}/`;
+    return `${protocol}//${host}/ws/chat/${roomId}/`;
+};
+
 export function useWebSocket(roomId) {
     const [messages, setMessages]   = useState([]);
     const [connected, setConnected] = useState(false);
@@ -7,22 +15,17 @@ export function useWebSocket(roomId) {
 
     useEffect(() => {
         if (!roomId) return;
-
-        const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://127.0.0.1:8000'}/ws/chat/${roomId}/`;
-        const ws    = new WebSocket(wsUrl);
+        const ws = new WebSocket(getWsURL(roomId));
         wsRef.current = ws;
-
-        ws.onopen = () => setConnected(true);
-
+        ws.onopen    = () => setConnected(true);
         ws.onmessage = (e) => {
-            const data = JSON.parse(e.data);
-            setMessages(prev => [...prev, data]);
+            try {
+                const data = JSON.parse(e.data);
+                setMessages(prev => [...prev, data]);
+            } catch { }
         };
-
         ws.onerror = (e) => console.error('WebSocket error:', e);
-
         ws.onclose = () => setConnected(false);
-
         return () => ws.close();
     }, [roomId]);
 

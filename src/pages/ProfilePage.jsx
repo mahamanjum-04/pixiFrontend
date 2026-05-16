@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { useAuth } from '../hooks/useAuth.jsx';
+import { useAuth } from '../hooks/useAuthContext';
 import api from '../services/api';
+import { resolveImage } from '../utils/image';
+
 
 export default function ProfilePage() {
     const { user, login } = useAuth();
@@ -117,7 +119,7 @@ export default function ProfilePage() {
                         <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center flex-shrink-0">
                                 {preview
-                                    ? <img src={preview} alt="avatar" className="w-full h-full object-cover" />
+                                    ? <img src={resolveImage(preview)} alt="avatar" className="w-full h-full object-cover" />
                                     : <span className="text-2xl font-medium text-gray-400">
                       {user?.username?.[0]?.toUpperCase() || 'U'}
                     </span>

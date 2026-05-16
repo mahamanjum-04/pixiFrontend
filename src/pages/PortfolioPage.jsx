@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ArtworkCard from '../components/ArtworkCard';
-import { useAuth } from '../hooks/useAuth.jsx';
+import { useAuth } from '../hooks/useAuthContext';
 import api from '../services/api';
 
 export default function PortfolioPage() {
