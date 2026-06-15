@@ -26,24 +26,35 @@ export default function UploadPage() {
         setPreview(URL.createObjectURL(file));
     };
 
+
     const handleSubmit = async () => {
         setError('');
         if (!form.title || !form.price || !image) {
             setError('Title, price and image are required.');
             return;
         }
+
         setLoading(true);
         try {
             const formData = new FormData();
-            Object.entries(form).forEach(([k, v]) => formData.append(k, v));
+            formData.append('title', form.title);
+            formData.append('price', form.price);
+            formData.append('medium', form.medium);
+            formData.append('description', form.description || '');
+            formData.append('dimensions', form.dimensions || '');
+            formData.append('status', form.status);
             formData.append('image', image);
+
+            // ✅ Use the service instead of direct api call
             await uploadArtwork(formData);
             navigate('/portfolio');
         } catch (err) {
+            console.error('Upload error:', err);
             setError(err.response?.data?.error || 'Upload failed. Please try again.');
         } finally {
             setLoading(false);
         }
+
     };
 
     return (

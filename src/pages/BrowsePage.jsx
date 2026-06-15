@@ -1,8 +1,9 @@
+import api from '../services/api';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ArtworkCard from '../components/ArtworkCard';
-import { getArtworks } from '../services/artworks';
+import { useAuth } from '../hooks/useAuthContext';
 
 const MEDIUMS = ['All', 'oil', 'watercolor', 'acrylic', 'digital', 'pencil', 'other'];
 
@@ -13,14 +14,16 @@ export default function BrowsePage() {
     const [medium, setMedium]     = useState('All');
     const [status, setStatus]     = useState('All');
     const [maxPrice, setMaxPrice] = useState('');
+    const { user } = useAuth();
 
     useEffect(() => {
         setLoading(true);
-        getArtworks()
+        const endpoint = user ? '/api/artworks/personalised/' : '/api/artworks/';
+        api.get(endpoint)
             .then(res => setArtworks(res.data))
             .catch(() => setError('Failed to load artworks.'))
             .finally(() => setLoading(false));
-    }, []);
+    }, [user]);
 
     const filtered = artworks.filter(a => {
         if (medium !== 'All' && a.medium !== medium) return false;
@@ -39,7 +42,7 @@ export default function BrowsePage() {
                     <div>
                         <h1 className="text-2xl font-semibold text-gray-900">Browse artworks</h1>
                         <p className="text-sm text-gray-400 mt-0.5">
-                            {loading ? 'Loading...' : `${filtered.length} artworks`}
+                            {loading ? 'Loading...' : `${filtered.length} artworks${user ? ' · personalised for you' : ''}`}
                         </p>
                     </div>
                     <Link to="/search" className="text-sm text-gray-500 hover:text-black underline underline-offset-2">

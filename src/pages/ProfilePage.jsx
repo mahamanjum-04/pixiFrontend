@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuthContext';
 import api from '../services/api';
 import { resolveImage } from '../utils/image';
 
+import InterestsPicker from '../components/InterestsPicker';
+import { getInterests, saveInterests } from '../services/interests';
 
 export default function ProfilePage() {
     const { user, login } = useAuth();
@@ -18,6 +20,9 @@ export default function ProfilePage() {
     const [error, setError]         = useState('');
     const [success, setSuccess]     = useState('');
     const [editing, setEditing]     = useState(false);
+    const [interests, setInterests]           = useState([]);
+    const [savingInterests, setSavingInterests] = useState(false);
+    const [interestSuccess, setInterestSuccess] = useState('');
 
     useEffect(() => {
         let cancelled = false;
@@ -31,6 +36,11 @@ export default function ProfilePage() {
                         last_name:  res.data.last_name  || '',
                         bio:        res.data.bio        || '',
                     });
+                    // load interests
+                    api.get('/api/auth/interests/')
+                        .then(res => setInterests(res.data.interests || []))
+                        .catch(() => {});
+
                     setPreview(res.data.avatar || null);
                 }
             } catch {
@@ -41,8 +51,23 @@ export default function ProfilePage() {
         };
 
         fetchProfile();
+
         return () => { cancelled = true; };
     }, []);
+
+    const handleSaveInterests = async () => {
+        setSavingInterests(true);
+        setInterestSuccess('');
+        try {
+            await saveInterests(interests);
+            setInterestSuccess('Interests updated.');
+            setTimeout(() => setInterestSuccess(''), 2500);
+        } catch {
+            setError('Failed to save interests.');
+        } finally {
+            setSavingInterests(false);
+        }
+    };
 
     const handleChange = e =>
         setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -209,6 +234,22 @@ export default function ProfilePage() {
                                 rows={3}
                                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black disabled:bg-gray-50 disabled:text-gray-400 resize-none"
                             />
+                        </div>
+
+                        {/* Interests */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Interests</label>
+                            <InterestsPicker selected={interests} onChange={setInterests} />
+                            {interestSuccess && (
+                                <p className="text-xs text-green-600 mt-2">{interestSuccess}</p>
+                            )}
+                            <button
+                                onClick={handleSaveInterests}
+                                disabled={savingInterests}
+                                className="mt-3 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:border-black hover:text-black transition disabled:opacity-50"
+                            >
+                                {savingInterests ? 'Saving...' : 'Update interests'}
+                            </button>
                         </div>
 
                         {/* Actions */}

@@ -37,6 +37,10 @@ export function AuthProvider({ children }) {
         localStorage.setItem('access_token', tokens.access);
         localStorage.setItem('refresh_token', tokens.refresh);
         setUser(userData);
+        // redirect to interests page on first login
+        if (!userData.has_set_interests) {
+            window.location.href = '/interests';
+        }
     }, []);
 
     const logout = useCallback(() => {

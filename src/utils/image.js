@@ -6,17 +6,21 @@ const getBaseURL = () => {
     return `${protocol}//${host}`;
 };
 
+// utils/image.js
 export const resolveImage = (url) => {
     if (!url) return null;
     if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+    if (url.startsWith('http')) return url;
 
-    const baseURL = getBaseURL();
+    // Get base URL from environment or window location
+    const baseURL = import.meta.env.VITE_API_URL ||
+        `${window.location.protocol}//${window.location.host}`;
 
-    if (url.includes('127.0.0.1') || url.includes('localhost')) {
-        const match = url.match(/\/media\/.*$/);
-        if (match) return `${baseURL}${match[0]}`;
+    // If URL is already a full media path
+    if (url.startsWith('/media/')) {
+        return `${baseURL}${url}`;
     }
 
-    if (url.startsWith('http')) return url;
+    // For relative paths from the backend
     return `${baseURL}${url.startsWith('/') ? '' : '/'}${url}`;
 };

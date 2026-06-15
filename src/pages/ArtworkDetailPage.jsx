@@ -6,6 +6,7 @@ import { getArtwork, updateStatus, deleteArtwork } from '../services/artworks';
 import { useAuth } from '../hooks/useAuthContext';
 import api from '../services/api';
 import SafeImage from '../components/SafeImage';
+import { trackClick } from '../services/tracking';
 
 export default function ArtworkDetailPage() {
     const { id }       = useParams();
@@ -23,6 +24,7 @@ export default function ArtworkDetailPage() {
     const [savedId, setSavedId]       = useState(null);
 
     useEffect(() => {
+        if (user) trackClick(parseInt(id));
         Promise.all([
             getArtwork(id),
             api.get(`/api/reviews/${id}/`),
