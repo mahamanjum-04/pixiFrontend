@@ -1,4 +1,4 @@
-import api from './api';
+import api from './api.js';
 
 export const getRequests    = ()   => api.get('/api/message-requests/');
 export const sendRequest    = (data) => api.post('/api/message-requests/', data);

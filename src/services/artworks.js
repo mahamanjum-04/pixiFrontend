@@ -1,4 +1,4 @@
-import api from './api';
+import api from './api.js';
 
 export const getArtworks   = ()           => api.get('/api/artworks/');
 export const getArtwork    = (id)         => api.get(`/api/artworks/${id}/`);

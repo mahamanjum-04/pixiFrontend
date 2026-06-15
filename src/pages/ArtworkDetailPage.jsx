@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import ReviewForm from '../components/ReviewForm';
-import { getArtwork, updateStatus, deleteArtwork } from '../services/artworks';
-import { useAuth } from '../hooks/useAuthContext';
-import api from '../services/api';
-import SafeImage from '../components/SafeImage';
-import { trackClick } from '../services/tracking';
+import Navbar from '../components/Navbar.jsx';
+import ReviewForm from '../components/ReviewForm.jsx';
+import { getArtwork, updateStatus, deleteArtwork } from '../services/artworks.js';
+import { useAuth } from '../hooks/useAuthContext.jsx';
+import api from '../services/api.js';
+import SafeImage from '../components/SafeImage.jsx';
+import { trackClick } from '../services/tracking.js';
 
 export default function ArtworkDetailPage() {
     const { id }       = useParams();

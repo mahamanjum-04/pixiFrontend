@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
-import SafeImage from './SafeImage';
+import api from '../services/api.js';
+import SafeImage from './SafeImage.jsx';
 
 export default function ArtworkCard({ artwork }) {
     const [saved, setSaved]     = useState(artwork.is_saved || false);

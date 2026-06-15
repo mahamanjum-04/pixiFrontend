@@ -1,4 +1,4 @@
-import api from './api';
+import api from './api.js';
 
 export const searchByText = (query) =>
     api.post('/api/ai/search/text/', { query });

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import { useAuth } from '../hooks/useAuthContext';
-import api from '../services/api';
-import { resolveImage } from '../utils/image';
+import Navbar from '../components/Navbar.jsx';
+import { useAuth } from '../hooks/useAuthContext.jsx';
+import api from '../services/api.js';
+import { resolveImage } from '../utils/image.js';
 
-import InterestsPicker from '../components/InterestsPicker';
-import { getInterests, saveInterests } from '../services/interests';
+import InterestsPicker from '../components/InterestsPicker.jsx';
+import { getInterests, saveInterests } from '../services/interests.js';
 
 export default function ProfilePage() {
     const { user, login } = useAuth();

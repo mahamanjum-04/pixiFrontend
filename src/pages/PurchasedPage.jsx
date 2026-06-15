@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import ReviewForm from '../components/ReviewForm';
-import api from '../services/api';
+import Navbar from '../components/Navbar.jsx';
+import ReviewForm from '../components/ReviewForm.jsx';
+import api from '../services/api.js';
 
 export default function PurchasedPage() {
     const [purchases, setPurchases] = useState([]);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
+import Navbar from '../components/Navbar.jsx';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { getCreatorAnalytics } from '../services/admin';
+import { getCreatorAnalytics } from '../services/admin.js';
 
 export default function CreatorAnalyticsPage() {
     const [data, setData]       = useState(null);

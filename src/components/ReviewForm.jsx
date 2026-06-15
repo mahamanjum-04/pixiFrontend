@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import api from '../services/api';
+import api from '../services/api.js';
 
 export default function ReviewForm({ artworkId, onSubmitted, onCancel }) {
     const [rating, setRating]   = useState(0);

@@ -1,4 +1,4 @@
-import api from './api';
+import api from './api.js';
 
 export const getUsers       = ()         => api.get('/api/admin/users/');
 export const banUser        = (id)       => api.patch(`/api/admin/users/${id}/ban/`);

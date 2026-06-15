@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register as registerRequest } from '../services/auth';
-import { useAuth } from '../hooks/useAuthContext';
+import { register as registerRequest } from '../services/auth.js';
+import { useAuth } from '../hooks/useAuthContext.jsx';
 export default function RegisterPage() {
     const { login } = useAuth();
     const navigate  = useNavigate();

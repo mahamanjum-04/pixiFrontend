@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import api from '../services/api';
+import Navbar from '../components/Navbar.jsx';
+import api from '../services/api.js';
 
 export default function SavedPage() {
     const [saved, setSaved]     = useState([]);

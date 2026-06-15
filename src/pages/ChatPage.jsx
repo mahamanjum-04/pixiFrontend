@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import { useAuth } from '../hooks/useAuthContext';
-import { useWebSocket } from '../hooks/useWebSocket';
-import { getChatHistory } from '../services/messaging';
-import { submitReport } from '../services/admin';
+import Navbar from '../components/Navbar.jsx';
+import { useAuth } from '../hooks/useAuthContext.jsx';
+import { useWebSocket } from '../hooks/useWebSocket.js';
+import { getChatHistory } from '../services/messaging.js';
+import { submitReport } from '../services/admin.js';
 
 export default function ChatPage() {
     const { roomId }   = useParams();

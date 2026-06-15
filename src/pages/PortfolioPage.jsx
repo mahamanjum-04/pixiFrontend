@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import ArtworkCard from '../components/ArtworkCard';
-import { useAuth } from '../hooks/useAuthContext';
-import api from '../services/api';
+import Navbar from '../components/Navbar.jsx';
+import ArtworkCard from '../components/ArtworkCard.jsx';
+import { useAuth } from '../hooks/useAuthContext.jsx';
+import api from '../services/api.js';
 
 export default function PortfolioPage() {
     const { user }                  = useAuth();

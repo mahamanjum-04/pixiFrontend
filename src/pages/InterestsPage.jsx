@@ -1,8 +1,8 @@
 import { useState, useEffect  } from 'react';
 import { useNavigate } from 'react-router-dom';
-import InterestsPicker from '../components/InterestsPicker';
-import { getInterests, saveInterests } from '../services/interests';
-import { useAuth } from '../hooks/useAuthContext';
+import InterestsPicker from '../components/InterestsPicker.jsx';
+import { getInterests, saveInterests } from '../services/interests.js';
+import { useAuth } from '../hooks/useAuthContext.jsx';
 
 export default function InterestsPage() {
     const { login, user }       = useAuth();

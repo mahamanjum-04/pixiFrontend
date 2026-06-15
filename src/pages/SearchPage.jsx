@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import Navbar from '../components/Navbar';
-import ArtworkCard from '../components/ArtworkCard';
-import { searchByText, searchByImage } from '../services/search';
-import { getArtwork } from '../services/artworks';
+import Navbar from '../components/Navbar.jsx';
+import ArtworkCard from '../components/ArtworkCard.jsx';
+import { searchByText, searchByImage } from '../services/search.js';
+import { getArtwork } from '../services/artworks.js';
 
 export default function SearchPage() {
     const [tab, setTab]           = useState('text');

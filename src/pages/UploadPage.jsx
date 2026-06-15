@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import { uploadArtwork } from '../services/artworks';
+import Navbar from '../components/Navbar.jsx';
+import { uploadArtwork } from '../services/artworks.js';
 
 const MEDIUMS = ['oil', 'watercolor', 'acrylic', 'digital', 'pencil', 'other'];
 

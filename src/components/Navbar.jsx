@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuthContext';
-import NotificationBadge from './NotificationBadge';
+import { useAuth } from '../hooks/useAuthContext.jsx';
+import NotificationBadge from './NotificationBadge.jsx';
 
 export default function Navbar() {
     const { user, logout } = useAuth();
