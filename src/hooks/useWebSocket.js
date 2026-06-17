@@ -2,9 +2,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const getWsURL = (roomId) => {
     if (import.meta.env.VITE_WS_URL) return `${import.meta.env.VITE_WS_URL}/ws/chat/${roomId}/`;
-    // Fall back to VITE_API_URL (converting http→ws, https→wss)
+    // Fall back to VITE_API_URL (converting http→ws, https→wss, strip /api suffix)
     if (import.meta.env.VITE_API_URL) {
-        const wsBase = import.meta.env.VITE_API_URL.replace(/^http/, 'ws');
+        const wsBase = import.meta.env.VITE_API_URL
+            .replace(/^http/, 'ws')
+            .replace(/\/api\/?$/, '');
         return `${wsBase}/ws/chat/${roomId}/`;
     }
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -27,7 +29,9 @@ export function useWebSocket(roomId) {
             try {
                 const data = JSON.parse(e.data);
                 setMessages(prev => [...prev, data]);
-            } catch { }
+            } catch {
+                // Non-JSON message from server — safe to ignore
+            }
         };
         ws.onerror = (e) => console.error('WebSocket error:', e);
         ws.onclose = () => setConnected(false);
