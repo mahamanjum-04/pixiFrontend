@@ -1,9 +1,20 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   --font-sans: 'Inter', sans-serif;
   --color-primary: #9440dd;
   --color-accent: #0cc0df;
   --color-dark-bg: #0a0a0a;
   --color-dark-surface: #141414;
+}
+
+/* Hide scrollbar for filter pills */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

@@ -5,15 +5,34 @@ import Navbar from '../components/Navbar.jsx';
 import ArtworkCard from '../components/ArtworkCard.jsx';
 import { useAuth } from '../hooks/useAuthContext.jsx';
 
-const MEDIUMS = ['All', 'oil', 'watercolor', 'acrylic', 'digital', 'pencil', 'other'];
+const FILTERS = [
+    'All', 'Oil', 'Watercolour', 'Acrylic', 'Digital', 'Pencil',
+    'Mixed media', 'Abstract', 'Portrait', 'Landscape',
+    'Still life', 'Street art', 'Photography'
+];
+
+// Map display labels to medium values for filtering
+const MEDIUM_MAP = {
+    'All': 'All',
+    'Oil': 'oil',
+    'Watercolour': 'watercolor',
+    'Acrylic': 'acrylic',
+    'Digital': 'digital',
+    'Pencil': 'pencil',
+    'Mixed media': 'mixed media',
+    'Abstract': 'abstract',
+    'Portrait': 'portrait',
+    'Landscape': 'landscape',
+    'Still life': 'still life',
+    'Street art': 'street art',
+    'Photography': 'photography',
+};
 
 export default function BrowsePage() {
     const [artworks, setArtworks] = useState([]);
     const [loading, setLoading]   = useState(true);
     const [error, setError]       = useState('');
-    const [medium, setMedium]     = useState('All');
-    const [status, setStatus]     = useState('All');
-    const [maxPrice, setMaxPrice] = useState('');
+    const [activeFilter, setActiveFilter] = useState('All');
     const { user } = useAuth();
 
     useEffect(() => {
@@ -46,87 +65,63 @@ export default function BrowsePage() {
     }, [user]);
 
     const filtered = artworks.filter(a => {
-        if (medium !== 'All' && a.medium !== medium) return false;
-        if (status !== 'All' && a.status !== status) return false;
-        if (maxPrice && parseFloat(a.price) > parseFloat(maxPrice)) return false;
-        return true;
+        if (activeFilter === 'All') return true;
+        const mediumVal = MEDIUM_MAP[activeFilter];
+        // Check both medium field and category-style matching
+        return a.medium === mediumVal || a.category === mediumVal;
     });
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white dark:bg-[#0a0a0a]">
             <Navbar />
-            <div className="max-w-6xl mx-auto px-6 py-8">
+            <div className="max-w-full mx-auto px-3 sm:px-6 pt-4 pb-20 md:pb-8">
 
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-2xl font-semibold text-gray-900">Browse artworks</h1>
-                        <p className="text-sm text-gray-400 mt-0.5">
-                            {loading ? 'Loading...' : `${filtered.length} artworks${user ? ' · personalised for you' : ''}`}
-                        </p>
-                    </div>
-                    <Link to="/search" className="text-sm text-gray-500 hover:text-black underline underline-offset-2">
-                        AI search →
-                    </Link>
-                </div>
-
-                {/* Filters */}
-                <div className="flex flex-wrap gap-3 mb-8">
-                    <select
-                        value={medium}
-                        onChange={e => setMedium(e.target.value)}
-                        className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-black"
-                    >
-                        {MEDIUMS.map(m => <option key={m}>{m}</option>)}
-                    </select>
-
-                    <select
-                        value={status}
-                        onChange={e => setStatus(e.target.value)}
-                        className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-black"
-                    >
-                        {['All', 'available', 'sold'].map(s => (
-                            <option key={s} value={s}>
-                                {s === 'All' ? 'All statuses' : s}
-                            </option>
+                {/* Filter pills - horizontal scroll */}
+                <div className="overflow-x-auto scrollbar-hide mb-4 -mx-3 px-3 sm:mx-0 sm:px-0">
+                    <div className="flex gap-2 w-max">
+                        {FILTERS.map(f => (
+                            <button
+                                key={f}
+                                onClick={() => setActiveFilter(f)}
+                                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition
+                                    ${activeFilter === f
+                                        ? 'bg-[#9440dd] text-white'
+                                        : 'bg-gray-100 dark:bg-[#141414] text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#1e1e1e]'
+                                    }`}
+                            >
+                                {f}
+                            </button>
                         ))}
-                    </select>
-
-                    <input
-                        type="number"
-                        placeholder="Max price $"
-                        value={maxPrice}
-                        onChange={e => setMaxPrice(e.target.value)}
-                        className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-black w-32"
-                    />
-
-                    {(medium !== 'All' || status !== 'All' || maxPrice) && (
-                        <button
-                            onClick={() => { setMedium('All'); setStatus('All'); setMaxPrice(''); }}
-                            className="px-3 py-2 text-sm text-gray-400 hover:text-black transition"
-                        >
-                            Clear filters
-                        </button>
-                    )}
+                    </div>
                 </div>
 
-                {/* States */}
+                {/* Personalised label */}
+                {user && !loading && (
+                    <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-4">
+                        Personalised for you ✦
+                    </p>
+                )}
+
+                {/* Loading */}
                 {loading && (
                     <div className="flex justify-center py-20">
-                        <div className="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin" />
+                        <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-[#9440dd] rounded-full animate-spin" />
                     </div>
                 )}
 
+                {/* Error */}
                 {error && (
                     <div className="text-center py-20 text-red-500 text-sm">{error}</div>
                 )}
 
+                {/* Empty */}
                 {!loading && !error && filtered.length === 0 && (
-                    <div className="text-center py-20 text-gray-400">No artworks found.</div>
+                    <div className="text-center py-20 text-gray-400 dark:text-gray-500">No artworks found.</div>
                 )}
 
+                {/* Masonry grid */}
                 {!loading && !error && filtered.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-3">
                         {filtered.map(a => <ArtworkCard key={a.id} artwork={a} />)}
                     </div>
                 )}

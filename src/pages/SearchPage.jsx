@@ -80,14 +80,14 @@ export default function SearchPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white dark:bg-[#0a0a0a]">
             <Navbar />
-            <div className="max-w-5xl mx-auto px-6 py-8">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-20 md:pb-8">
 
                 {/* Header */}
                 <div className="mb-6">
-                    <h1 className="text-2xl font-semibold text-gray-900">AI Search</h1>
-                    <p className="text-sm text-gray-400 mt-0.5">
+                    <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">AI Search</h1>
+                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">
                         Find artworks by description or by uploading a similar image
                     </p>
                 </div>
@@ -101,10 +101,10 @@ export default function SearchPage() {
                         <button
                             key={t.key}
                             onClick={() => handleTabSwitch(t.key)}
-                            className={`px-4 py-1.5 rounded-full text-sm font-medium border transition
+                            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition
                 ${tab === t.key
-                                ? 'bg-black text-white border-black'
-                                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'}`}
+                                ? 'bg-[#9440dd] text-white'
+                                : 'bg-gray-100 dark:bg-[#141414] text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#1e1e1e]'}`}
                         >
                             {t.label}
                         </button>
@@ -120,12 +120,12 @@ export default function SearchPage() {
                             onChange={e => setQuery(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleTextSearch()}
                             placeholder="e.g. blue abstract painting, sunset landscape oil..."
-                            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black bg-white"
+                            className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#9440dd] bg-white dark:bg-[#141414] text-gray-900 dark:text-gray-100"
                         />
                         <button
                             onClick={handleTextSearch}
                             disabled={loading || !query.trim()}
-                            className="px-5 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition disabled:opacity-40"
+                            className="px-5 py-2.5 bg-[#9440dd] text-white rounded-lg text-sm font-medium hover:bg-[#7d36c0] transition disabled:opacity-40"
                         >
                             {loading ? 'Searching...' : 'Search'}
                         </button>
@@ -137,11 +137,11 @@ export default function SearchPage() {
                     <div className="mb-8">
                         <div
                             onClick={() => document.getElementById('search-img-input').click()}
-                            className="w-full max-w-sm aspect-video rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-gray-400 transition overflow-hidden mb-3"
+                            className="w-full max-w-sm aspect-video rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center cursor-pointer hover:border-[#9440dd] transition overflow-hidden mb-3 bg-gray-50 dark:bg-[#141414]"
                         >
                             {imagePreview
                                 ? <img src={imagePreview} alt="query" className="w-full h-full object-cover" />
-                                : <div className="text-center text-gray-300">
+                                : <div className="text-center text-gray-300 dark:text-gray-600">
                                     <div className="text-3xl mb-1">🖼</div>
                                     <p className="text-sm">Click to upload an image</p>
                                     <p className="text-xs mt-1">We'll find visually similar artworks</p>
@@ -158,7 +158,7 @@ export default function SearchPage() {
                         <button
                             onClick={handleImageSearch}
                             disabled={loading || !imageFile}
-                            className="px-5 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition disabled:opacity-40"
+                            className="px-5 py-2.5 bg-[#9440dd] text-white rounded-lg text-sm font-medium hover:bg-[#7d36c0] transition disabled:opacity-40"
                         >
                             {loading ? 'Searching...' : 'Find similar artworks'}
                         </button>
@@ -168,18 +168,18 @@ export default function SearchPage() {
                 {/* Loading */}
                 {loading && (
                     <div className="flex justify-center py-20">
-                        <div className="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin" />
+                        <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-[#9440dd] rounded-full animate-spin" />
                     </div>
                 )}
 
                 {/* Error */}
                 {error && (
-                    <div className="text-center py-10 text-red-400 text-sm">{error}</div>
+                    <div className="text-center py-10 text-red-400 dark:text-red-500 text-sm">{error}</div>
                 )}
 
                 {/* No results */}
                 {!loading && searched && !error && results.length === 0 && (
-                    <div className="text-center py-20 text-gray-400 text-sm">
+                    <div className="text-center py-20 text-gray-400 dark:text-gray-500 text-sm">
                         No matching artworks found. Try a different search.
                     </div>
                 )}
@@ -187,10 +187,10 @@ export default function SearchPage() {
                 {/* Results */}
                 {!loading && results.length > 0 && (
                     <>
-                        <p className="text-sm text-gray-400 mb-4">
+                        <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
                             {results.length} result{results.length !== 1 ? 's' : ''} found
                         </p>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div className="columns-2 sm:columns-3 lg:columns-4 gap-3">
                             {results.map(a => (
                                 <div key={a.id} className="relative">
                                     <ArtworkCard artwork={a} />

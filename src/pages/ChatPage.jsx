@@ -23,7 +23,6 @@ export default function ChatPage() {
 
     const { messages, setMessages, connected, sendMessage } = useWebSocket(roomId);
 
-    // Load chat history
     useEffect(() => {
         let cancelled = false;
 
@@ -40,7 +39,7 @@ export default function ChatPage() {
                     setMessages(history);
                 }
             } catch {
-                // history load failed silently — chat still works
+                // history load failed silently
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -50,7 +49,6 @@ export default function ChatPage() {
         return () => { cancelled = true; };
     }, [roomId, setMessages]);
 
-    // Auto-scroll on new message
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
@@ -76,7 +74,7 @@ export default function ChatPage() {
         try {
             await submitReport({
                 reported_artwork: null,
-                reported_user:    null, // we don't have the other user's ID here easily
+                reported_user:    null,
                 reason:           reportReason,
                 description:      reportDesc || `Reported from chat room ${roomId}`,
             });
@@ -96,11 +94,11 @@ export default function ChatPage() {
     const REASONS = ['inappropriate', 'spam', 'harassment', 'fake', 'other'];
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col">
             <Navbar />
 
             <div
-                className="max-w-2xl w-full mx-auto px-4 flex flex-col flex-1 py-4"
+                className="max-w-2xl w-full mx-auto px-4 flex flex-col flex-1 pt-4 pb-20 md:pb-4"
                 style={{ height: 'calc(100vh - 57px)' }}
             >
 
@@ -108,21 +106,27 @@ export default function ChatPage() {
                 <div className="flex items-center gap-3 mb-4">
                     <button
                         onClick={() => navigate('/inbox')}
-                        className="text-gray-400 hover:text-black transition text-sm"
+                        className="text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition"
                     >
-                        ← Back
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
                     </button>
-                    <span className="text-sm font-medium text-gray-700">Chat #{roomId}</span>
+
+                    <div className="w-8 h-8 rounded-full bg-[#9440dd] flex items-center justify-center text-xs font-semibold text-white flex-shrink-0">
+                        {user?.username?.[0]?.toUpperCase() || 'U'}
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Chat #{roomId}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        connected ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-400'
+                        connected ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-[#141414] text-gray-400'
                     }`}>
-            {connected ? 'Connected' : 'Connecting...'}
-          </span>
+                        {connected ? 'Connected' : 'Connecting...'}
+                    </span>
 
                     {/* Report button */}
                     <button
                         onClick={() => setShowReport(r => !r)}
-                        className="ml-auto text-xs text-gray-300 hover:text-red-400 transition"
+                        className="ml-auto text-xs text-gray-300 dark:text-gray-600 hover:text-red-400 transition"
                     >
                         ⚑ Report
                     </button>
@@ -130,32 +134,32 @@ export default function ChatPage() {
 
                 {/* Report panel */}
                 {showReport && (
-                    <div className="bg-white border border-gray-100 rounded-xl p-4 mb-4">
-                        <p className="text-sm font-medium text-gray-800 mb-3">Report this conversation</p>
+                    <div className="bg-gray-50 dark:bg-[#141414] border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-4">
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">Report this conversation</p>
 
                         {reportSuccess && (
-                            <p className="text-xs text-green-600 bg-green-50 px-3 py-2 rounded-lg mb-3">
+                            <p className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-lg mb-3">
                                 {reportSuccess}
                             </p>
                         )}
                         {reportError && (
-                            <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg mb-3">
+                            <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mb-3">
                                 {reportError}
                             </p>
                         )}
 
-                        {/* Reason selector */}
                         <div className="mb-3">
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Reason</label>
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Reason</label>
                             <div className="flex flex-wrap gap-2">
                                 {REASONS.map(r => (
                                     <button
                                         key={r}
                                         onClick={() => setReportReason(r)}
                                         className={`px-3 py-1 rounded-full text-xs border transition capitalize
-                      ${reportReason === r
-                                            ? 'bg-black text-white border-black'
-                                            : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'}`}
+                                            ${reportReason === r
+                                                ? 'bg-[#9440dd] text-white border-[#9440dd]'
+                                                : 'bg-white dark:bg-[#0a0a0a] text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-400'
+                                            }`}
                                     >
                                         {r}
                                     </button>
@@ -163,9 +167,8 @@ export default function ChatPage() {
                             </div>
                         </div>
 
-                        {/* Description */}
                         <div className="mb-3">
-                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                                 Additional details (optional)
                             </label>
                             <textarea
@@ -173,7 +176,7 @@ export default function ChatPage() {
                                 onChange={e => setReportDesc(e.target.value)}
                                 placeholder="Describe the issue..."
                                 rows={2}
-                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none"
+                                className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] resize-none"
                             />
                         </div>
 
@@ -191,7 +194,7 @@ export default function ChatPage() {
                                     setReportError('');
                                     setReportDesc('');
                                 }}
-                                className="flex-1 border border-gray-200 py-2 rounded-lg text-xs text-gray-500 hover:border-gray-400 transition"
+                                className="flex-1 border border-gray-200 dark:border-gray-700 py-2 rounded-lg text-xs text-gray-500 dark:text-gray-400 hover:border-gray-400 transition"
                             >
                                 Cancel
                             </button>
@@ -204,12 +207,12 @@ export default function ChatPage() {
 
                     {loading && (
                         <div className="flex justify-center py-10">
-                            <div className="w-6 h-6 border-4 border-gray-200 border-t-black rounded-full animate-spin" />
+                            <div className="w-6 h-6 border-4 border-gray-200 dark:border-gray-700 border-t-[#9440dd] rounded-full animate-spin" />
                         </div>
                     )}
 
                     {!loading && messages.length === 0 && (
-                        <div className="text-center py-10 text-gray-300 text-sm">
+                        <div className="text-center py-10 text-gray-300 dark:text-gray-600 text-sm">
                             No messages yet. Say hello!
                         </div>
                     )}
@@ -219,20 +222,20 @@ export default function ChatPage() {
                         return (
                             <div key={i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                                 {!isMe && (
-                                    <span className="text-xs text-gray-400 mb-1 ml-1">{msg.sender_name}</span>
+                                    <span className="text-xs text-gray-400 dark:text-gray-500 mb-1 ml-1">{msg.sender_name}</span>
                                 )}
-                                <div className={`max-w-xs px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                                <div className={`max-w-xs px-4 py-2.5 text-sm leading-relaxed ${
                                     isMe
-                                        ? 'bg-black text-white rounded-br-sm'
-                                        : 'bg-white border border-gray-100 text-gray-800 rounded-bl-sm'
+                                        ? 'bg-[#9440dd] text-white rounded-2xl rounded-tr-sm'
+                                        : 'bg-[#141414] dark:bg-[#1e1e1e] text-white rounded-2xl rounded-tl-sm'
                                 }`}>
                                     {msg.message}
                                 </div>
-                                <span className="text-[10px] text-gray-300 mt-1 mx-1">
-                  {msg.timestamp
-                      ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                      : 'Just now'}
-                </span>
+                                <span className="text-[10px] text-gray-300 dark:text-gray-600 mt-1 mx-1">
+                                    {msg.timestamp
+                                        ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                        : 'Just now'}
+                                </span>
                             </div>
                         );
                     })}
@@ -241,27 +244,29 @@ export default function ChatPage() {
                 </div>
 
                 {/* Input */}
-                <div className="mt-2 flex gap-2 items-end bg-white border border-gray-200 rounded-2xl px-4 py-2">
-          <textarea
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={connected ? 'Type a message...' : 'Connecting...'}
-              disabled={!connected}
-              rows={1}
-              className="flex-1 text-sm text-gray-800 resize-none focus:outline-none bg-transparent py-1.5 placeholder-gray-300 disabled:opacity-50"
-              style={{ maxHeight: '120px' }}
-              onInput={e => {
-                  e.target.style.height = 'auto';
-                  e.target.style.height = e.target.scrollHeight + 'px';
-              }}
-          />
+                <div className="mt-2 flex gap-2 items-end bg-gray-50 dark:bg-[#141414] border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2">
+                    <textarea
+                        value={input}
+                        onChange={e => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={connected ? 'Type a message...' : 'Connecting...'}
+                        disabled={!connected}
+                        rows={1}
+                        className="flex-1 text-sm text-gray-800 dark:text-gray-100 resize-none focus:outline-none bg-transparent py-1.5 placeholder-gray-300 dark:placeholder-gray-600 disabled:opacity-50"
+                        style={{ maxHeight: '120px' }}
+                        onInput={e => {
+                            e.target.style.height = 'auto';
+                            e.target.style.height = e.target.scrollHeight + 'px';
+                        }}
+                    />
                     <button
                         onClick={handleSend}
                         disabled={!input.trim() || !connected}
-                        className="mb-1 w-8 h-8 flex-shrink-0 bg-black text-white rounded-xl flex items-center justify-center hover:bg-gray-800 transition disabled:opacity-30"
+                        className="mb-1 w-8 h-8 flex-shrink-0 bg-[#9440dd] text-white rounded-full flex items-center justify-center hover:bg-[#7d36c0] transition disabled:opacity-30"
                     >
-                        ↑
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                        </svg>
                     </button>
                 </div>
 

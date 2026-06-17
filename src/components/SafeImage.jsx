@@ -5,7 +5,7 @@ export default function SafeImage({ src, alt, className }) {
 
     if (!src || failed) {
         return (
-            <div className={`flex items-center justify-center bg-gray-50 text-gray-200 text-4xl ${className}`}>
+            <div className={`flex items-center justify-center bg-gray-100 dark:bg-[#141414] text-gray-300 dark:text-gray-600 text-4xl ${className}`}>
                 🖼
             </div>
         );

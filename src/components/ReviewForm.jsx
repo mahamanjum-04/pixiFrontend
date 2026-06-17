@@ -21,8 +21,8 @@ export default function ReviewForm({ artworkId, onSubmitted, onCancel }) {
     };
 
     return (
-        <div className="border border-gray-100 rounded-xl p-4 bg-gray-50">
-            <p className="text-sm font-medium text-gray-800 mb-3">Leave a review</p>
+        <div className="border border-gray-100 dark:border-gray-800 rounded-xl p-4 bg-gray-50 dark:bg-[#141414]">
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">Leave a review</p>
 
             {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
 
@@ -44,20 +44,20 @@ export default function ReviewForm({ artworkId, onSubmitted, onCancel }) {
                 onChange={e => setComment(e.target.value)}
                 placeholder="Share your thoughts..."
                 rows={3}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none"
+                className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] resize-none"
             />
 
             <div className="flex gap-2 mt-3">
                 <button
                     onClick={handleSubmit}
                     disabled={loading}
-                    className="flex-1 bg-black text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition disabled:opacity-50"
+                    className="flex-1 bg-[#9440dd] text-white py-2 rounded-lg text-sm font-medium hover:bg-[#7d36c0] transition disabled:opacity-50"
                 >
                     {loading ? 'Submitting...' : 'Submit'}
                 </button>
                 <button
                     onClick={onCancel}
-                    className="flex-1 border border-gray-200 py-2 rounded-lg text-sm text-gray-500 hover:border-gray-400 transition"
+                    className="flex-1 border border-gray-200 dark:border-gray-700 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:border-gray-400 transition"
                 >
                     Cancel
                 </button>
