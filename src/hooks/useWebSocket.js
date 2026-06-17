@@ -28,6 +28,13 @@ export function useWebSocket(roomId) {
         ws.onmessage = (e) => {
             try {
                 const data = JSON.parse(e.data);
+
+                // Respond to server keep-alive pings
+                if (data.type === 'ping') {
+                    ws.send(JSON.stringify({ type: 'pong' }));
+                    return;
+                }
+
                 setMessages(prev => [...prev, data]);
             } catch {
                 // Non-JSON message from server — safe to ignore
