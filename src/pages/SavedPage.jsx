@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import ArtworkCard from '../components/ArtworkCard.jsx';
+import { getArtwork } from '../services/artworks.js';
 import api from '../services/api.js';
 
 export default function SavedPage() {
-    const [saved, setSaved]     = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError]     = useState('');
+    const [artworks, setArtworks]   = useState([]);
+    const [loading, setLoading]     = useState(true);
+    const [error, setError]         = useState('');
 
     useEffect(() => {
         let cancelled = false;
@@ -15,7 +16,26 @@ export default function SavedPage() {
         const fetchSaved = async () => {
             try {
                 const res = await api.get('/api/saved/');
-                if (!cancelled) setSaved(res.data);
+                if (cancelled) return;
+
+                const savedItems = res.data;
+
+                // Fetch full artwork details for each saved item
+                const fullArtworks = await Promise.all(
+                    savedItems.map(s =>
+                        getArtwork(s.artwork)
+                            .then(r => ({
+                                ...r.data,
+                                is_saved: true,
+                                saved_id: s.id,
+                            }))
+                            .catch(() => null)
+                    )
+                );
+
+                if (!cancelled) {
+                    setArtworks(fullArtworks.filter(Boolean));
+                }
             } catch {
                 if (!cancelled) setError('Failed to load saved artworks.');
             } finally {
@@ -27,15 +47,6 @@ export default function SavedPage() {
         return () => { cancelled = true; };
     }, []);
 
-    const handleUnsave = async (savedId) => {
-        try {
-            await api.delete(`/api/saved/${savedId}/`);
-            setSaved(prev => prev.filter(s => s.id !== savedId));
-        } catch {
-            alert('Failed to remove.');
-        }
-    };
-
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
@@ -45,7 +56,7 @@ export default function SavedPage() {
                 <div className="mb-6">
                     <h1 className="text-2xl font-semibold text-gray-900">Saved artworks</h1>
                     <p className="text-sm text-gray-400 mt-0.5">
-                        {!loading && `${saved.length} artwork${saved.length !== 1 ? 's' : ''}`}
+                        {!loading && `${artworks.length} artwork${artworks.length !== 1 ? 's' : ''}`}
                     </p>
                 </div>
 
@@ -62,7 +73,7 @@ export default function SavedPage() {
                 )}
 
                 {/* Empty */}
-                {!loading && !error && saved.length === 0 && (
+                {!loading && !error && artworks.length === 0 && (
                     <div className="text-center py-20">
                         <p className="text-gray-400 text-sm mb-4">You haven't saved any artworks yet.</p>
                         <Link
@@ -74,23 +85,11 @@ export default function SavedPage() {
                     </div>
                 )}
 
-                {/* Grid */}
-                {!loading && !error && saved.length > 0 && (
+                {/* Grid — identical to BrowsePage */}
+                {!loading && !error && artworks.length > 0 && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {saved.map(s => (
-                            <ArtworkCard
-                                key={s.id}
-                                artwork={{
-                                    id: s.artwork,
-                                    image: s.artwork_image,
-                                    title: s.artwork_title,
-                                    creator_name: s.creator_name,
-                                    price: s.artwork_price,
-                                    status: s.artwork_status,
-                                    is_saved: true,
-                                    saved_id: s.id,
-                                }}
-                            />
+                        {artworks.map(a => (
+                            <ArtworkCard key={a.id} artwork={a} />
                         ))}
                     </div>
                 )}
