@@ -127,4 +127,5 @@ api.interceptors.response.use(
     }
 );
 
+export { scheduleProactiveRefresh };
 export default api;
