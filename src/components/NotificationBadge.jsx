@@ -7,8 +7,8 @@ export default function NotificationBadge() {
 
     useEffect(() => {
         const fetchCount = () => {
-            api.get('/api/notifications/unread-count/')
-                .then(res => setCount(res.data.unread_count))
+            api.get('/api/notifications/')
+                .then(res => setCount(res.data.filter(n => !n.read).length))
                 .catch(() => {});
         };
         fetchCount();
