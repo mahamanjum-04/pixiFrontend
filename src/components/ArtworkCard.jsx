@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api.js';
 import SafeImage from './SafeImage.jsx';
@@ -7,6 +7,12 @@ import { resolveImage } from '../utils/image.js';
 export default function ArtworkCard({ artwork }) {
     const [saved, setSaved]     = useState(artwork.is_saved || false);
     const [savedId, setSavedId] = useState(artwork.saved_id || null);
+
+    // Sync saved state when artwork prop changes (e.g. after saved list is fetched)
+    useEffect(() => {
+        setSaved(artwork.is_saved || false);
+        setSavedId(artwork.saved_id || null);
+    }, [artwork.is_saved, artwork.saved_id]);
 
     const toggleSave = async (e) => {
         e.preventDefault();
