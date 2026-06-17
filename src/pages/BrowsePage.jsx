@@ -19,25 +19,30 @@ export default function BrowsePage() {
     useEffect(() => {
         setLoading(true);
         const endpoint = user ? '/api/artworks/personalised/' : '/api/artworks/';
+
         api.get(endpoint)
-            .then(res => setArtworks(res.data))
+            .then(async (res) => {
+                let arts = res.data;
+
+                // If logged in, mark which artworks are saved
+                if (user) {
+                    try {
+                        const savedRes = await api.get('/api/saved/');
+                        const savedMap = new Map(savedRes.data.map(s => [s.artwork, s.id]));
+                        arts = arts.map(a => ({
+                            ...a,
+                            is_saved: savedMap.has(a.id),
+                            saved_id: savedMap.get(a.id) || null,
+                        }));
+                    } catch {
+                        // silent — cards just won't show as saved
+                    }
+                }
+
+                setArtworks(arts);
+            })
             .catch(() => setError('Failed to load artworks.'))
             .finally(() => setLoading(false));
-    }, [user]);
-
-    // Mark artworks as saved/unsaved based on user's saved list
-    useEffect(() => {
-        if (!user) return;
-        api.get('/api/saved/')
-            .then(res => {
-                const savedMap = new Map(res.data.map(s => [s.artwork, s.id]));
-                setArtworks(prev => prev.map(a => ({
-                    ...a,
-                    is_saved: savedMap.has(a.id),
-                    saved_id: savedMap.get(a.id) || null,
-                })));
-            })
-            .catch(() => {}); // silent — cards just won't show as saved
     }, [user]);
 
     const filtered = artworks.filter(a => {
