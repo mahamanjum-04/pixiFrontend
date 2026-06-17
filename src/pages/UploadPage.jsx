@@ -150,6 +150,7 @@ export default function UploadPage() {
                             >
                                 <option value="available">Available</option>
                                 <option value="sold">Sold</option>
+                                <option value="not_for_sale">Not for sale</option>
                             </select>
                         </div>
                     </div>

@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar.jsx';
 import ReviewForm from '../components/ReviewForm.jsx';
 import { getArtwork, updateStatus, deleteArtwork } from '../services/artworks.js';
 import { useAuth } from '../hooks/useAuthContext.jsx';
+import { createIntent, confirmPurchase, getPurchases } from '../services/purchases.js';
 import api from '../services/api.js';
 import SafeImage from '../components/SafeImage.jsx';
 import { trackClick } from '../services/tracking.js';
@@ -48,7 +49,7 @@ export default function ArtworkDetailPage() {
 
         // check if already purchased
         if (user?.is_buyer) {
-            api.get('/api/purchases/')
+            getPurchases()
                 .then(res => {
                     const hasPurchased = res.data.some(p => p.artwork === parseInt(id));
                     setPurchased(hasPurchased);
@@ -76,9 +77,8 @@ export default function ArtworkDetailPage() {
     const handlePurchase = async () => {
         setPurchasing(true);
         try {
-            // create intent then confirm
-            const intentRes = await api.post('/api/purchases/create-intent/', { artwork: artwork.id });
-            await api.post('/api/purchases/confirm/', {
+            const intentRes = await createIntent(artwork.id);
+            await confirmPurchase({
                 payment_intent_id: intentRes.data.client_secret.split('_secret_')[0],
                 artwork: artwork.id,
             });
@@ -236,6 +236,7 @@ export default function ArtworkDetailPage() {
                                     >
                                         <option value="available">Available</option>
                                         <option value="sold">Sold</option>
+                                        <option value="not_for_sale">Not for sale</option>
                                     </select>
                                     <button
                                         onClick={handleDelete}

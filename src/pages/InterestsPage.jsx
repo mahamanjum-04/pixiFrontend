@@ -73,10 +73,6 @@ export default function InterestsPage() {
                     </>
                 }
 
-                <p className="text-xs text-gray-300 mt-4">
-                    {selected.length} selected
-                </p>
-
                 <div className="flex gap-3 mt-6">
                     <button
                         onClick={handleContinue}

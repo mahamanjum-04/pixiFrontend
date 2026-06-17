@@ -23,6 +23,7 @@ export function AuthProvider({ children }) {
                 if (!cancelled) {
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
                 }
             } finally {
                 if (!cancelled) setLoading(false);

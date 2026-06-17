@@ -26,6 +26,15 @@ export default function CreatorAnalyticsPage() {
         return () => { cancelled = true; };
     }, []);
 
+    // Prepare chart data from interactions
+    const chartData = data?.interactions?.map(item => ({
+        name: item.artwork_title?.length > 12 
+            ? item.artwork_title.substring(0, 12) + '...' 
+            : item.artwork_title,
+        amount: parseFloat(item.amount) || 0,
+        fullName: item.artwork_title
+    })) || [];
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
@@ -60,6 +69,33 @@ export default function CreatorAnalyticsPage() {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Sales per artwork chart */}
+                        {chartData.length > 0 && (
+                            <div className="bg-white border border-gray-100 rounded-xl p-6 mb-8">
+                                <p className="text-sm font-medium text-gray-700 mb-4">Revenue by artwork</p>
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <BarChart data={chartData}>
+                                        <XAxis 
+                                            dataKey="name" 
+                                            tick={{ fontSize: 11 }} 
+                                            angle={-15}
+                                            textAnchor="end"
+                                            height={60}
+                                        />
+                                        <YAxis tick={{ fontSize: 11 }} tickFormatter={(value) => `$${value}`} />
+                                        <Tooltip 
+                                            formatter={(value) => [`$${value}`, 'Revenue']}
+                                            labelFormatter={(label, payload) => {
+                                                const item = payload[0]?.payload;
+                                                return item?.fullName || label;
+                                            }}
+                                        />
+                                        <Bar dataKey="amount" fill="#111111" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
 
                         {/* Interactions table */}
                         {data.interactions?.length > 0 && (

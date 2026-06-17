@@ -36,7 +36,8 @@ export default function RegisterPage() {
             const res = await registerRequest(form);
             const { access, refresh, user } = res.data;
             login({ access, refresh }, user);
-            if (user.is_creator) navigate('/portfolio');
+            if (!user.has_set_interests) navigate('/interests');
+            else if (user.is_creator) navigate('/portfolio');
             else navigate('/browse');
         } catch (err) {
             setError(err.response?.data?.error || 'Registration failed. Please try again.');

@@ -36,7 +36,7 @@ export default function App() {
           <Route path="/profile"       element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/inbox"         element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
           <Route path="/chat/:roomId"  element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-          <Route path="/purchased"     element={<ProtectedRoute><PurchasedPage /></ProtectedRoute>} />
+          <Route path="/purchased"     element={<RoleRoute roles={['buyer']}><PurchasedPage /></RoleRoute>} />
 
           {/* Creator only */}
           <Route path="/upload"    element={<RoleRoute roles={['creator']}><UploadPage /></RoleRoute>} />
@@ -50,11 +50,7 @@ export default function App() {
           {/* Default */}
           <Route path="/" element={<Navigate to="/browse" replace />} />
 
-          {/* Chat */}
-          <Route path="/inbox" element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
-          <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-
-          {/* interests */}
+          {/* Interests */}
           <Route path="/interests" element={<ProtectedRoute><InterestsPage /></ProtectedRoute>} />
 
       </Routes>

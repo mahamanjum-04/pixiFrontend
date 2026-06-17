@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
+import SafeImage from '../components/SafeImage.jsx';
 import api from '../services/api.js';
 
 export default function SavedPage() {
@@ -83,7 +84,7 @@ export default function SavedPage() {
                                 <Link to={`/artworks/${s.artwork}`}>
                                     <div className="relative aspect-square bg-gray-50">
                                         {s.artwork_image
-                                            ? <img
+                                            ? <SafeImage
                                                 src={s.artwork_image}
                                                 alt={s.artwork_title}
                                                 className="w-full h-full object-cover group-hover:scale-105 transition duration-300"

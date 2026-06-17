@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Documentation files
+FeatureMap.md
+FileMap.md
+ApiMap.md
