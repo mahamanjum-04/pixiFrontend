@@ -25,6 +25,21 @@ export default function BrowsePage() {
             .finally(() => setLoading(false));
     }, [user]);
 
+    // Mark artworks as saved/unsaved based on user's saved list
+    useEffect(() => {
+        if (!user) return;
+        api.get('/api/saved/')
+            .then(res => {
+                const savedMap = new Map(res.data.map(s => [s.artwork, s.id]));
+                setArtworks(prev => prev.map(a => ({
+                    ...a,
+                    is_saved: savedMap.has(a.id),
+                    saved_id: savedMap.get(a.id) || null,
+                })));
+            })
+            .catch(() => {}); // silent — cards just won't show as saved
+    }, [user]);
+
     const filtered = artworks.filter(a => {
         if (medium !== 'All' && a.medium !== medium) return false;
         if (status !== 'All' && a.status !== status) return false;
