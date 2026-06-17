@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
-import SafeImage from '../components/SafeImage.jsx';
+import ArtworkCard from '../components/ArtworkCard.jsx';
 import api from '../services/api.js';
 
 export default function SavedPage() {
@@ -78,49 +78,19 @@ export default function SavedPage() {
                 {!loading && !error && saved.length > 0 && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         {saved.map(s => (
-                            <div key={s.id} className="group bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
-
-                                {/* Image */}
-                                <Link to={`/artworks/${s.artwork}`}>
-                                    <div className="relative aspect-square bg-gray-50">
-                                        {s.artwork_image
-                                            ? <SafeImage
-                                                src={s.artwork_image}
-                                                alt={s.artwork_title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                            />
-                                            : <div className="w-full h-full flex items-center justify-center text-gray-200 text-4xl">🖼</div>
-                                        }
-                                        <span className={`absolute bottom-2 left-2 text-xs px-2 py-0.5 rounded-full font-medium ${
-                                            s.artwork_status === 'available'
-                                                ? 'bg-green-50 text-green-700'
-                                                : 'bg-red-50 text-red-500'
-                                        }`}>
-                      {s.artwork_status}
-                    </span>
-                                    </div>
-                                </Link>
-
-                                {/* Info */}
-                                <div className="p-3">
-                                    <Link to={`/artworks/${s.artwork}`}>
-                                        <p className="text-sm font-medium text-gray-900 truncate hover:underline">
-                                            {s.artwork_title}
-                                        </p>
-                                    </Link>
-                                    <p className="text-xs text-gray-400 truncate">{s.creator_name}</p>
-                                    <div className="flex items-center justify-between mt-2">
-                                        <p className="text-sm font-semibold text-gray-900">${s.artwork_price}</p>
-                                        <button
-                                            onClick={() => handleUnsave(s.id)}
-                                            className="text-xs text-gray-300 hover:text-red-400 transition"
-                                        >
-                                            ❤️ Remove
-                                        </button>
-                                    </div>
-                                </div>
-
-                            </div>
+                            <ArtworkCard
+                                key={s.id}
+                                artwork={{
+                                    id: s.artwork,
+                                    image: s.artwork_image,
+                                    title: s.artwork_title,
+                                    creator_name: s.creator_name,
+                                    price: s.artwork_price,
+                                    status: s.artwork_status,
+                                    is_saved: true,
+                                    saved_id: s.id,
+                                }}
+                            />
                         ))}
                     </div>
                 )}

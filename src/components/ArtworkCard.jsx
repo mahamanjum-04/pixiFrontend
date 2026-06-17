@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api.js';
 import SafeImage from './SafeImage.jsx';
+import { resolveImage } from '../utils/image.js';
 
 export default function ArtworkCard({ artwork }) {
     const [saved, setSaved]     = useState(artwork.is_saved || false);
@@ -37,7 +38,7 @@ export default function ArtworkCard({ artwork }) {
                 {/* Image */}
                 <div className="relative aspect-square bg-gray-50">
                     <SafeImage
-                        src={artwork.image}
+                        src={resolveImage(artwork.image)}
                         alt={artwork.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />

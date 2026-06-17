@@ -2,6 +2,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const getWsURL = (roomId) => {
     if (import.meta.env.VITE_WS_URL) return `${import.meta.env.VITE_WS_URL}/ws/chat/${roomId}/`;
+    // Fall back to VITE_API_URL (converting http→ws, https→wss)
+    if (import.meta.env.VITE_API_URL) {
+        const wsBase = import.meta.env.VITE_API_URL.replace(/^http/, 'ws');
+        return `${wsBase}/ws/chat/${roomId}/`;
+    }
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
     if (host.includes('localhost') || host.includes('127.0.0.1')) return `ws://localhost:8000/ws/chat/${roomId}/`;
@@ -29,9 +34,16 @@ export function useWebSocket(roomId) {
         return () => ws.close();
     }, [roomId]);
 
-    const sendMessage = useCallback((text, userId) => {
+    const sendMessage = useCallback((text, userId, senderName) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
+            const msg = {
+                message:     text,
+                user_id:     userId,
+                sender_name: senderName || '',
+                timestamp:   new Date().toISOString(),
+            };
             wsRef.current.send(JSON.stringify({ message: text, user_id: userId }));
+            setMessages(prev => [...prev, msg]);
         }
     }, []);
 

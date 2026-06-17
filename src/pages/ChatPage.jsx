@@ -58,7 +58,7 @@ export default function ChatPage() {
     const handleSend = () => {
         const text = input.trim();
         if (!text || !connected) return;
-        sendMessage(text, user.id);
+        sendMessage(text, user.id, user.username);
         setInput('');
     };
 
