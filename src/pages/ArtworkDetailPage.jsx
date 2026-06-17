@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import ReviewForm from '../components/ReviewForm.jsx';
-import { getArtwork, updateStatus, deleteArtwork } from '../services/artworks.js';
+import { getArtwork, updateStatus, updateArtwork, deleteArtwork } from '../services/artworks.js';
 import { useAuth } from '../hooks/useAuthContext.jsx';
 import { createIntent, confirmPurchase, getPurchases } from '../services/purchases.js';
 import api from '../services/api.js';
@@ -94,7 +94,16 @@ export default function ArtworkDetailPage() {
 
     const handleStatusChange = async (status) => {
         try {
-            const res = await updateStatus(id, status);
+            // The backend's /status/ endpoint only accepts "available" and "sold".
+            // For "not_for_sale" we go through the general edit endpoint instead.
+            let res;
+            if (status === 'not_for_sale') {
+                const formData = new FormData();
+                formData.append('status', status);
+                res = await updateArtwork(id, formData);
+            } else {
+                res = await updateStatus(id, status);
+            }
             setArtwork(res.data);
         } catch { alert('Failed to update status.'); }
     };
@@ -171,9 +180,11 @@ export default function ArtworkDetailPage() {
                                 <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600">{artwork.dimensions}</span>
                             )}
                             <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                                artwork.status === 'available' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-500'
+                                artwork.status === 'available' ? 'bg-green-50 text-green-700' :
+                                artwork.status === 'not_for_sale' ? 'bg-gray-100 text-gray-500' :
+                                'bg-red-50 text-red-500'
                             }`}>
-                {artwork.status}
+                {artwork.status?.replace('_', ' ')}
               </span>
                         </div>
 

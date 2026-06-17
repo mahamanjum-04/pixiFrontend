@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
-import { uploadArtwork } from '../services/artworks.js';
+import { uploadArtwork, updateArtwork } from '../services/artworks.js';
 
 const MEDIUMS = ['oil', 'watercolor', 'acrylic', 'digital', 'pencil', 'other'];
 
@@ -46,7 +46,16 @@ export default function UploadPage() {
             formData.append('image', image);
 
             // ✅ Use the service instead of direct api call
-            await uploadArtwork(formData);
+            const uploadRes = await uploadArtwork(formData);
+
+            // The backend's create endpoint only accepts "available" and "sold".
+            // If the user chose "not_for_sale", update via the edit endpoint.
+            if (form.status === 'not_for_sale') {
+                const statusForm = new FormData();
+                statusForm.append('status', 'not_for_sale');
+                await updateArtwork(uploadRes.data.id, statusForm);
+            }
+
             navigate('/portfolio');
         } catch (err) {
             console.error('Upload error:', err);
