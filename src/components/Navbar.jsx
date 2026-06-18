@@ -24,7 +24,7 @@ export default function Navbar() {
                 {/* Left: Logo */}
                 <Link to="/browse" className="flex-shrink-0">
                     <img
-                        src={dark ? "/src/assets/dark-logo.png" : "/src/assets/light-logo.png"}
+                        src={dark ? "/assets/dark-logo.png" : "/assets/light-logo.png"}
                         alt="PIXI"
                         className="h-8"
                     />
@@ -97,7 +97,7 @@ export default function Navbar() {
                 {/* Logo centered */}
                 <Link to="/browse" className="absolute left-1/2 -translate-x-1/2">
                     <img
-                        src={dark ? "/src/assets/dark-logo.png" : "/src/assets/light-logo.png"}
+                        src={dark ? "/assets/dark-logo.png" : "/assets/light-logo.png"}
                         alt="PIXI"
                         className="h-7"
                     />

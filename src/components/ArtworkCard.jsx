@@ -36,6 +36,9 @@ export default function ArtworkCard({ artwork }) {
         sold:         'bg-red-50 text-red-600',
         not_for_sale: 'bg-gray-100 text-gray-500',
     };
+// In ArtworkCard.jsx, right before the return:
+    console.log('Artwork image:', artwork.image);
+    console.log('Resolved image:', resolveImage(artwork.image));
 
     return (
         <Link to={`/artworks/${artwork.id}`} className="group block">
