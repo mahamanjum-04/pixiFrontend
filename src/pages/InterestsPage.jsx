@@ -56,7 +56,7 @@ export default function InterestsPage() {
                 {/* Logo */}
                 <div className="flex justify-center mb-4">
                     <img
-                        src={dark ? "/src/assets/dark-logo.png" : "/src/assets/light-logo.png"}
+                        src={dark ? "/assets/dark-logo.png" : "/assets/light-logo.png"}
                         alt="PIXI"
                         className="h-8"
                     />

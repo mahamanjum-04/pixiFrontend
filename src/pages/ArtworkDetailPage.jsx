@@ -172,10 +172,7 @@ export default function ArtworkDetailPage() {
                                 onClick={toggleSave}
                                 className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/90 dark:bg-[#1e1e1e]/90 shadow-md flex items-center justify-center hover:scale-110 transition"
                             >
-                                {saved
-                                    ? <img src="/src/assets/liked-button.png" alt="Liked" className="w-5 h-5" />
-                                    : <img src="/src/assets/like-button.png" alt="Save" className="w-5 h-5" />
-                                }
+                                {saved ? '❤️' : '🤍'}
                             </button>
                         )}
                     </div>
