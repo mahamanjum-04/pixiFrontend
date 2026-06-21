@@ -1,9 +1,10 @@
-import api from '../services/api.js';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import ArtworkCard from '../components/ArtworkCard.jsx';
 import { useAuth } from '../hooks/useAuthContext.jsx';
+import api from '../services/api.js';
+import { getArtworks } from '../services/artworks.js';
 
 const FILTERS = [
     'All', 'Oil', 'Watercolour', 'Acrylic', 'Digital', 'Pencil',
@@ -37,9 +38,8 @@ export default function BrowsePage() {
 
     useEffect(() => {
         setLoading(true);
-        const endpoint = user ? '/api/artworks/personalised/' : '/api/artworks/';
-
-        api.get(endpoint)
+        const endpointFn = user ? () => api.get('/api/artworks/personalised/') : getArtworks;
+        endpointFn()
             .then(async (res) => {
                 let arts = res.data;
 

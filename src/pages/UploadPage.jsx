@@ -34,40 +34,36 @@ export default function UploadPage() {
             return;
         }
 
-        // 🔍 Debug: Check if image exists
-        console.log('Image being uploaded:', image);
-        console.log('Image type:', image?.type);
-        console.log('Image size:', image?.size);
-
         setLoading(true);
         try {
             const formData = new FormData();
-            // 🔍 Debug: Log what's being appended
-            console.log('Appending fields...');
             formData.append('title', form.title);
             formData.append('price', form.price);
             formData.append('medium', form.medium);
             formData.append('description', form.description || '');
             formData.append('dimensions', form.dimensions || '');
             formData.append('status', form.status);
-            formData.append('image', image);  // ← This should be a File object
+            formData.append('image', image);
 
-            // 🔍 Debug: Check FormData contents
-            for (let pair of formData.entries()) {
-                console.log(pair[0], pair[1]);
+            // ✅ Use the service instead of direct api call
+            const uploadRes = await uploadArtwork(formData);
+
+            // The backend's create endpoint only accepts "available" and "sold".
+            // If the user chose "not_for_sale", update via the edit endpoint.
+            if (form.status === 'not_for_sale') {
+                const statusForm = new FormData();
+                statusForm.append('status', 'not_for_sale');
+                await updateArtwork(uploadRes.data.id, statusForm);
             }
 
-            const uploadRes = await uploadArtwork(formData);
-            console.log('Upload response:', uploadRes);
-            console.log('Response data:', uploadRes.data);
-
-            // ... rest of code
+            navigate('/portfolio');
         } catch (err) {
             console.error('Upload error:', err);
             setError(err.response?.data?.error || 'Upload failed. Please try again.');
         } finally {
             setLoading(false);
         }
+
     };
 
     return (

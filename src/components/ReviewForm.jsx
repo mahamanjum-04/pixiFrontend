@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import api from '../services/api.js';
+import { postReview } from '../services/reviews.js';
 
 export default function ReviewForm({ artworkId, onSubmitted, onCancel }) {
     const [rating, setRating]   = useState(0);
@@ -11,7 +11,7 @@ export default function ReviewForm({ artworkId, onSubmitted, onCancel }) {
         if (rating === 0) { setError('Please select a rating.'); return; }
         setLoading(true);
         try {
-            const res = await api.post(`/api/reviews/${artworkId}/`, { rating, comment });
+            const res = await postReview(artworkId, { rating, comment });
             onSubmitted(res.data);
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to submit review.');

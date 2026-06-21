@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar.jsx';
-import api from '../services/api.js';
+import { getUsers, getReports, banUser, unbanUser, removeContent, resolveReport } from '../services/admin.js';
 
 export default function AdminDashboardPage() {
     const [users, setUsers]       = useState([]);
@@ -15,8 +15,8 @@ export default function AdminDashboardPage() {
         const fetchAll = async () => {
             try {
                 const [usersRes, reportsRes] = await Promise.all([
-                    api.get('/api/admin/users/'),
-                    api.get('/api/admin/reports/'),
+                    getUsers(),
+                    getReports(),
                 ]);
                 if (!cancelled) {
                     setUsers(usersRes.data);
@@ -36,14 +36,14 @@ export default function AdminDashboardPage() {
     const handleBan = async (id) => {
         if (!confirm('Ban this user?')) return;
         try {
-            await api.patch(`/api/admin/users/${id}/ban/`);
+            await banUser(id);
             setUsers(prev => prev.map(u => u.id === id ? { ...u, is_banned: true } : u));
         } catch { alert('Failed to ban user.'); }
     };
 
     const handleUnban = async (id) => {
         try {
-            await api.patch(`/api/admin/users/${id}/unban/`);
+            await unbanUser(id);
             setUsers(prev => prev.map(u => u.id === id ? { ...u, is_banned: false } : u));
         } catch { alert('Failed to unban user.'); }
     };
@@ -51,14 +51,14 @@ export default function AdminDashboardPage() {
     const handleRemoveContent = async (id) => {
         if (!confirm('Remove this content?')) return;
         try {
-            await api.delete(`/api/admin/content/${id}/`);
+            await removeContent(id);
             setReports(prev => prev.filter(r => r.id !== id));
         } catch { alert('Failed to remove content.'); }
     };
 
     const handleResolve = async (id) => {
         try {
-            await api.patch(`/api/admin/reports/${id}/resolve/`, { action: 'dismiss' });
+            await resolveReport(id, { action: 'dismiss' });
             setReports(prev => prev.map(r => r.id === id ? { ...r, status: 'resolved' } : r));
         } catch { alert('Failed to resolve report.'); }
     };

@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import ReviewForm from '../components/ReviewForm.jsx';
 import { getArtwork, updateStatus, updateArtwork, deleteArtwork } from '../services/artworks.js';
+import { getReviews } from '../services/reviews.js';
 import { useAuth } from '../hooks/useAuthContext.jsx';
 import { createIntent, confirmPurchase, getPurchases } from '../services/purchases.js';
 import api from '../services/api.js';
 import SafeImage from '../components/SafeImage.jsx';
 import { resolveImage } from '../utils/image.js';
 import { trackClick } from '../services/tracking.js';
+import { submitReport } from '../services/admin.js';
 
 export default function ArtworkDetailPage() {
     const { id }       = useParams();
@@ -24,12 +26,18 @@ export default function ArtworkDetailPage() {
     const [error, setError]           = useState('');
     const [saved, setSaved]           = useState(false);
     const [savedId, setSavedId]       = useState(null);
+    const [showReport, setShowReport] = useState(false);
+    const [reportReason, setReportReason]   = useState('inappropriate');
+    const [reportDesc, setReportDesc]       = useState('');
+    const [reportLoading, setReportLoading] = useState(false);
+    const [reportSuccess, setReportSuccess] = useState('');
+    const [reportError, setReportError]     = useState('');
 
     useEffect(() => {
         if (user) trackClick(parseInt(id));
         Promise.all([
             getArtwork(id),
-            api.get(`/api/reviews/${id}/`),
+            getReviews(id),
         ])
             .then(([artRes, revRes]) => {
                 setArtwork(artRes.data);
@@ -118,6 +126,32 @@ export default function ArtworkDetailPage() {
         setShowReview(false);
     };
 
+    const handleReport = async () => {
+        setReportLoading(true);
+        setReportError('');
+        setReportSuccess('');
+        try {
+            await submitReport({
+                reported_artwork: parseInt(id),
+                reported_user:    null,
+                reason:           reportReason,
+                description:      reportDesc || `Reported artwork: ${artwork?.title}`,
+            });
+            setReportSuccess('Report submitted. Our team will review it shortly.');
+            setReportDesc('');
+            setTimeout(() => {
+                setShowReport(false);
+                setReportSuccess('');
+            }, 2500);
+        } catch {
+            setReportError('Failed to submit report. Please try again.');
+        } finally {
+            setReportLoading(false);
+        }
+    };
+
+    const REASONS = ['inappropriate', 'spam', 'harassment', 'fake', 'other'];
+
     if (loading) return (
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a]">
             <Navbar />
@@ -183,11 +217,95 @@ export default function ArtworkDetailPage() {
                     {/* Info — 40% on desktop */}
                     <div className="md:col-span-2 flex flex-col gap-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#9440dd] flex items-center justify-center text-sm font-semibold text-white flex-shrink-0">
+                            <Link
+                                to={`/profile/${artwork.creator}`}
+                                className="w-10 h-10 rounded-full bg-[#9440dd] flex items-center justify-center text-sm font-semibold text-white flex-shrink-0 hover:opacity-80 transition"
+                            >
                                 {artwork.creator_name?.[0]?.toUpperCase() || 'U'}
-                            </div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{artwork.creator_name}</p>
+                            </Link>
+                            <Link
+                                to={`/profile/${artwork.creator}`}
+                                className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#9440dd] dark:hover:text-[#9440dd] transition"
+                            >
+                                {artwork.creator_name}
+                            </Link>
+                            <button
+                                onClick={() => setShowReport(r => !r)}
+                                className="ml-auto text-xs text-gray-300 dark:text-gray-600 hover:text-red-400 transition"
+                            >
+                                ⚑ Report
+                            </button>
                         </div>
+
+                        {/* Report panel */}
+                        {showReport && (
+                            <div className="bg-gray-50 dark:bg-[#141414] border border-gray-100 dark:border-gray-800 rounded-xl p-4">
+                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">Report this artwork</p>
+
+                                {reportSuccess && (
+                                    <p className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-lg mb-3">
+                                        {reportSuccess}
+                                    </p>
+                                )}
+                                {reportError && (
+                                    <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mb-3">
+                                        {reportError}
+                                    </p>
+                                )}
+
+                                <div className="mb-3">
+                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Reason</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {REASONS.map(r => (
+                                            <button
+                                                key={r}
+                                                onClick={() => setReportReason(r)}
+                                                className={`px-3 py-1 rounded-full text-xs border transition capitalize
+                                                    ${reportReason === r
+                                                        ? 'bg-[#9440dd] text-white border-[#9440dd]'
+                                                        : 'bg-white dark:bg-[#0a0a0a] text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-400'
+                                                    }`}
+                                            >
+                                                {r}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                        Additional details (optional)
+                                    </label>
+                                    <textarea
+                                        value={reportDesc}
+                                        onChange={e => setReportDesc(e.target.value)}
+                                        placeholder="Describe the issue..."
+                                        rows={2}
+                                        className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] resize-none"
+                                    />
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleReport}
+                                        disabled={reportLoading}
+                                        className="flex-1 bg-red-500 text-white py-2 rounded-lg text-xs font-medium hover:bg-red-600 transition disabled:opacity-50"
+                                    >
+                                        {reportLoading ? 'Submitting...' : 'Submit report'}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowReport(false);
+                                            setReportError('');
+                                            setReportDesc('');
+                                        }}
+                                        className="flex-1 border border-gray-200 dark:border-gray-700 py-2 rounded-lg text-xs text-gray-500 dark:text-gray-400 hover:border-gray-400 transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{artwork.title}</h1>
 

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import ArtworkCard from '../components/ArtworkCard.jsx';
 import { useAuth } from '../hooks/useAuthContext.jsx';
-import api from '../services/api.js';
+import { getArtworks } from '../services/artworks.js';
 
 export default function PortfolioPage() {
     const { user }                  = useAuth();
@@ -13,7 +13,7 @@ export default function PortfolioPage() {
     const [filter, setFilter]       = useState('All');
 
     useEffect(() => {
-        api.get('/api/artworks/')
+        getArtworks()
             .then(res => {
                 // only show this creator's artworks
                 const mine = res.data.filter(a => a.creator === user?.id);

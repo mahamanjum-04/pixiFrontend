@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api.js';
+import { getUnreadCount } from '../services/notifications.js';
 
 export default function NotificationBadge() {
     const [count, setCount] = useState(0);
 
     const fetchCount = useCallback(() => {
-        api.get('/api/message-requests/')
-            .then(res => setCount(res.data.filter(r => r.status === 'pending').length))
+        getUnreadCount()
+            .then(res => setCount(res.data.unread_count))
             .catch(() => {});
     }, []);
 

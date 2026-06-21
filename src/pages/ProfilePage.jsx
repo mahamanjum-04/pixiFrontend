@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import ArtworkCard from '../components/ArtworkCard.jsx';
 import { useAuth } from '../hooks/useAuthContext.jsx';
@@ -7,9 +7,16 @@ import api from '../services/api.js';
 import { resolveImage } from '../utils/image.js';
 import InterestsPicker from '../components/InterestsPicker.jsx';
 import { getInterests, saveInterests } from '../services/interests.js';
+import { submitReport } from '../services/admin.js';
+import { getMe, updateMe } from '../services/auth.js';
+import { getArtworks } from '../services/artworks.js';
 
 export default function ProfilePage() {
+    const { userId }  = useParams();
     const { user, login } = useAuth();
+    const navigate    = useNavigate();
+
+    const isOwnProfile = !userId || parseInt(userId) === user?.id;
 
     const [form, setForm] = useState({
         first_name: '', last_name: '', bio: '',
@@ -25,51 +32,76 @@ export default function ProfilePage() {
     const [savingInterests, setSavingInterests] = useState(false);
     const [interestSuccess, setInterestSuccess] = useState('');
 
+    // Report user state
+    const [showReport, setShowReport] = useState(false);
+    const [reportReason, setReportReason]   = useState('inappropriate');
+    const [reportDesc, setReportDesc]       = useState('');
+    const [reportLoading, setReportLoading] = useState(false);
+    const [reportSuccess, setReportSuccess] = useState('');
+    const [reportError, setReportError]     = useState('');
+
     // Tab state
-    const [activeTab, setActiveTab] = useState(user?.is_creator ? 'created' : 'saved');
+    const [activeTab, setActiveTab] = useState('created');
     const [tabArtworks, setTabArtworks] = useState([]);
     const [tabLoading, setTabLoading] = useState(false);
+
+    // Viewed user data (for other user profiles)
+    const [viewedUser, setViewedUser] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
 
         const fetchProfile = async () => {
-            try {
-                const res = await api.get('/api/auth/me/');
-                if (!cancelled) {
-                    setForm({
-                        first_name: res.data.first_name || '',
-                        last_name:  res.data.last_name  || '',
-                        bio:        res.data.bio        || '',
-                    });
-                    api.get('/api/auth/interests/')
-                        .then(res => setInterests(res.data.interests || []))
-                        .catch(() => {});
-                    setPreview(res.data.avatar || null);
+            if (isOwnProfile) {
+                try {
+                    const res = await getMe();
+                    if (!cancelled) {
+                        setForm({
+                            first_name: res.data.first_name || '',
+                            last_name:  res.data.last_name  || '',
+                            bio:        res.data.bio        || '',
+                        });
+                        getInterests()
+                            .then(res => setInterests(res.data.interests || []))
+                            .catch(() => {});
+                        setPreview(res.data.avatar || null);
+                    }
+                } catch {
+                    if (!cancelled) setError('Failed to load profile.');
+                } finally {
+                    if (!cancelled) setLoading(false);
                 }
-            } catch {
-                if (!cancelled) setError('Failed to load profile.');
-            } finally {
-                if (!cancelled) setLoading(false);
+            } else {
+                // Fetching another user's profile - load their artworks
+                setActiveTab('created');
+                setLoading(false);
             }
         };
 
         fetchProfile();
         return () => { cancelled = true; };
-    }, []);
+    }, [userId, user, isOwnProfile]);
 
     // Fetch tab artworks
     useEffect(() => {
         setTabLoading(true);
         if (activeTab === 'created') {
-            api.get('/api/artworks/')
+            getArtworks()
                 .then(res => {
-                    const mine = res.data.filter(a => a.creator === user?.id);
+                    const creatorId = isOwnProfile ? user?.id : parseInt(userId);
+                    const mine = res.data.filter(a => a.creator === creatorId);
+                    if (!isOwnProfile && mine.length > 0) {
+                        setViewedUser({
+                            username: mine[0].creator_name,
+                            id: creatorId,
+                            is_creator: true,
+                        });
+                    }
                     setTabArtworks(mine);
                 })
                 .catch(() => setTabArtworks([]))
                 .finally(() => setTabLoading(false));
-        } else if (activeTab === 'saved') {
+        } else if (activeTab === 'saved' && isOwnProfile) {
             api.get('/api/saved/')
                 .then(async (res) => {
                     const { getArtwork } = await import('../services/artworks.js');
@@ -84,15 +116,17 @@ export default function ProfilePage() {
                 })
                 .catch(() => setTabArtworks([]))
                 .finally(() => setTabLoading(false));
-        } else if (activeTab === 'purchased') {
+        } else if (activeTab === 'purchased' && isOwnProfile) {
             import('../services/purchases.js').then(({ getPurchases }) =>
                 getPurchases()
                     .then(res => setTabArtworks(res.data))
                     .catch(() => setTabArtworks([]))
                     .finally(() => setTabLoading(false))
             );
+        } else {
+            setTabLoading(false);
         }
-    }, [activeTab, user]);
+    }, [activeTab, user, userId, isOwnProfile]);
 
     const handleSaveInterests = async () => {
         setSavingInterests(true);
@@ -129,7 +163,7 @@ export default function ProfilePage() {
             formData.append('last_name',  form.last_name);
             if (avatar) formData.append('avatar', avatar);
 
-            const res = await api.patch('/api/auth/me/', formData);
+            const res = await updateMe(formData);
 
             const tokens = {
                 access:  localStorage.getItem('access_token'),
@@ -160,9 +194,43 @@ export default function ProfilePage() {
         });
     };
 
-    const tabs = user?.is_creator
-        ? [{ key: 'created', label: 'Created' }, { key: 'saved', label: 'Saved' }]
-        : [{ key: 'saved', label: 'Saved' }, { key: 'purchased', label: 'Purchased' }];
+    const handleReport = async () => {
+        setReportLoading(true);
+        setReportError('');
+        setReportSuccess('');
+        try {
+            const reportedUserId = isOwnProfile ? null : parseInt(userId);
+            await submitReport({
+                reported_artwork: null,
+                reported_user:    reportedUserId,
+                reason:           reportReason,
+                description:      reportDesc || `Reported user: ${viewedUser?.username || userId}`,
+            });
+            setReportSuccess('Report submitted. Our team will review it shortly.');
+            setReportDesc('');
+            setTimeout(() => {
+                setShowReport(false);
+                setReportSuccess('');
+            }, 2500);
+        } catch {
+            setReportError('Failed to submit report. Please try again.');
+        } finally {
+            setReportLoading(false);
+        }
+    };
+
+    const REASONS = ['inappropriate', 'spam', 'harassment', 'fake', 'other'];
+
+    const tabs = isOwnProfile
+        ? user?.is_creator
+            ? [{ key: 'created', label: 'Created' }, { key: 'saved', label: 'Saved' }]
+            : [{ key: 'saved', label: 'Saved' }, { key: 'purchased', label: 'Purchased' }]
+        : [{ key: 'created', label: 'Artworks' }];
+
+    const displayName = isOwnProfile ? user?.username : (viewedUser?.username || `User #${userId}`);
+    const displayRole = isOwnProfile
+        ? (user?.is_creator ? 'Creator' : 'Buyer')
+        : (viewedUser?.is_creator ? 'Creator' : 'User');
 
     return (
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a]">
@@ -185,30 +253,110 @@ export default function ProfilePage() {
                                 {preview
                                     ? <img src={resolveImage(preview)} alt="avatar" className="w-full h-full object-cover" />
                                     : <span className="text-3xl font-semibold text-white">
-                                        {user?.username?.[0]?.toUpperCase() || 'U'}
+                                        {displayName?.[0]?.toUpperCase() || 'U'}
                                     </span>
                                 }
                             </div>
 
                             <div className="text-center sm:text-left flex-1">
-                                <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{user?.username}</p>
+                                <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{displayName}</p>
                                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                                    {user?.is_creator ? 'Creator' : 'Buyer'}
+                                    {displayRole}
                                 </p>
-                                {user?.bio && !editing && (
+                                {isOwnProfile && user?.bio && !editing && (
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{user.bio}</p>
                                 )}
                             </div>
 
-                            {!editing && (
-                                <button
-                                    onClick={() => setEditing(true)}
-                                    className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-[#9440dd] hover:text-[#9440dd] transition"
-                                >
-                                    Edit profile
-                                </button>
-                            )}
+                            <div className="flex gap-2">
+                                {isOwnProfile && !editing && (
+                                    <button
+                                        onClick={() => setEditing(true)}
+                                        className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-[#9440dd] hover:text-[#9440dd] transition"
+                                    >
+                                        Edit profile
+                                    </button>
+                                )}
+                                {!isOwnProfile && (
+                                    <button
+                                        onClick={() => setShowReport(r => !r)}
+                                        className="px-4 py-2 border border-red-200 dark:border-red-800 rounded-xl text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                                    >
+                                        ⚑ Report user
+                                    </button>
+                                )}
+                            </div>
                         </div>
+
+                        {/* Report panel */}
+                        {showReport && !isOwnProfile && (
+                            <div className="bg-gray-50 dark:bg-[#141414] border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-8">
+                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">Report this user</p>
+
+                                {reportSuccess && (
+                                    <p className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-lg mb-3">
+                                        {reportSuccess}
+                                    </p>
+                                )}
+                                {reportError && (
+                                    <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mb-3">
+                                        {reportError}
+                                    </p>
+                                )}
+
+                                <div className="mb-3">
+                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Reason</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {REASONS.map(r => (
+                                            <button
+                                                key={r}
+                                                onClick={() => setReportReason(r)}
+                                                className={`px-3 py-1 rounded-full text-xs border transition capitalize
+                                                    ${reportReason === r
+                                                        ? 'bg-[#9440dd] text-white border-[#9440dd]'
+                                                        : 'bg-white dark:bg-[#0a0a0a] text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-400'
+                                                    }`}
+                                            >
+                                                {r}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                        Additional details (optional)
+                                    </label>
+                                    <textarea
+                                        value={reportDesc}
+                                        onChange={e => setReportDesc(e.target.value)}
+                                        placeholder="Describe the issue..."
+                                        rows={2}
+                                        className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] resize-none"
+                                    />
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleReport}
+                                        disabled={reportLoading}
+                                        className="flex-1 bg-red-500 text-white py-2 rounded-lg text-xs font-medium hover:bg-red-600 transition disabled:opacity-50"
+                                    >
+                                        {reportLoading ? 'Submitting...' : 'Submit report'}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowReport(false);
+                                            setReportError('');
+                                            setReportDesc('');
+                                        }}
+                                        className="flex-1 border border-gray-200 dark:border-gray-700 py-2 rounded-lg text-xs text-gray-500 dark:text-gray-400 hover:border-gray-400 transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Feedback */}
                         {error && (
@@ -222,7 +370,7 @@ export default function ProfilePage() {
                             </div>
                         )}
 
-                        {/* Edit form */}
+                        {/* Edit form (own profile only) */}
                         {editing && (
                             <div className="bg-gray-50 dark:bg-[#141414] border border-gray-100 dark:border-gray-800 rounded-2xl p-6 mb-8">
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit Profile</h2>

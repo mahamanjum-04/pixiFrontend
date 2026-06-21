@@ -34,6 +34,7 @@ export default function App() {
           <Route path="/artworks/:id"  element={<ProtectedRoute><ArtworkDetailPage /></ProtectedRoute>} />
           <Route path="/saved"         element={<ProtectedRoute><SavedPage /></ProtectedRoute>} />
           <Route path="/profile"       element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/profile/:userId" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/inbox"         element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
           <Route path="/chat/:roomId"  element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
           <Route path="/purchased"     element={<RoleRoute roles={['buyer']}><PurchasedPage /></RoleRoute>} />
