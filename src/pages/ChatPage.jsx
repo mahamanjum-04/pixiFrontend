@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import { useAuth } from '../hooks/useAuthContext.jsx';
 import { useWebSocket } from '../hooks/useWebSocket.js';
-import { getChatHistory } from '../services/messaging.js';
+import { getChatHistory, sendMessage as sendRestMessage } from '../services/messaging.js';
 import { submitReport } from '../services/admin.js';
 
 export default function ChatPage() {
@@ -53,10 +53,29 @@ export default function ChatPage() {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         const text = input.trim();
-        if (!text || !connected) return;
-        sendMessage(text, user.id, user.username);
+        if (!text) return;
+
+        if (connected) {
+            // Use WebSocket when connected
+            sendMessage(text, user.id, user.username);
+        } else {
+            // Fallback to REST API when WebSocket is not connected
+            try {
+                await sendRestMessage(roomId, text);
+                // Optimistically add message to the list
+                const optimisticMsg = {
+                    message: text,
+                    user_id: user.id,
+                    sender_name: user.username || '',
+                    timestamp: new Date().toISOString(),
+                };
+                setMessages(prev => [...prev, optimisticMsg]);
+            } catch (error) {
+                console.error('Failed to send message via REST:', error);
+            }
+        }
         setInput('');
     };
 
@@ -249,10 +268,9 @@ export default function ChatPage() {
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder={connected ? 'Type a message...' : 'Connecting...'}
-                        disabled={!connected}
+                        placeholder={connected ? 'Type a message...' : 'Type a message (offline mode)...'}
                         rows={1}
-                        className="flex-1 text-sm text-gray-800 dark:text-gray-100 resize-none focus:outline-none bg-transparent py-1.5 placeholder-gray-300 dark:placeholder-gray-600 disabled:opacity-50"
+                        className="flex-1 text-sm text-gray-800 dark:text-gray-100 resize-none focus:outline-none bg-transparent py-1.5 placeholder-gray-300 dark:placeholder-gray-600"
                         style={{ maxHeight: '120px' }}
                         onInput={e => {
                             e.target.style.height = 'auto';
@@ -261,7 +279,7 @@ export default function ChatPage() {
                     />
                     <button
                         onClick={handleSend}
-                        disabled={!input.trim() || !connected}
+                        disabled={!input.trim()}
                         className="mb-1 w-8 h-8 flex-shrink-0 bg-[#9440dd] text-white rounded-full flex items-center justify-center hover:bg-[#7d36c0] transition disabled:opacity-30"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

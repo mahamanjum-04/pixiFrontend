@@ -8,7 +8,6 @@ export default function ArtworkCard({ artwork }) {
     const [saved, setSaved]     = useState(artwork.is_saved || false);
     const [savedId, setSavedId] = useState(artwork.saved_id || null);
 
-    // Sync saved state when artwork prop changes (e.g. after saved list is fetched)
     useEffect(() => {
         setSaved(artwork.is_saved || false);
         setSavedId(artwork.saved_id || null);
@@ -16,6 +15,7 @@ export default function ArtworkCard({ artwork }) {
 
     const toggleSave = async (e) => {
         e.preventDefault();
+        e.stopPropagation();
         try {
             if (saved) {
                 await api.delete(`/api/saved/${savedId}/`);
@@ -31,44 +31,48 @@ export default function ArtworkCard({ artwork }) {
         }
     };
 
-    const statusColor = {
-        available:    'bg-green-50 text-green-700',
-        sold:         'bg-red-50 text-red-600',
-        not_for_sale: 'bg-gray-100 text-gray-500',
-    };
-// In ArtworkCard.jsx, right before the return:
-    console.log('Artwork image:', artwork.image);
-    console.log('Resolved image:', resolveImage(artwork.image));
-
     return (
-        <Link to={`/artworks/${artwork.id}`} className="group block">
-            <div className="rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition bg-white">
+        <Link to={`/artworks/${artwork.id}`} className="group block break-inside-avoid mb-3">
+            <div className="rounded-2xl overflow-hidden bg-gray-50 dark:bg-[#141414] relative">
 
                 {/* Image */}
-                <div className="relative aspect-square bg-gray-50">
-                    <SafeImage
-                        src={resolveImage(artwork.image)}
-                        alt={artwork.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                    />
-                    <button
-                        onClick={toggleSave}
-                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-sm hover:scale-110 transition"
-                    >
-                        {saved ? '❤️' : '🤍'}
-                    </button>
-                    <span className={`absolute bottom-2 left-2 text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[artwork.status] || statusColor.available}`}>
-            {artwork.status?.replace('_', ' ')}
-          </span>
-                </div>
+                <SafeImage
+                    src={resolveImage(artwork.image)}
+                    alt={artwork.title}
+                    className="w-full h-auto"
+                />
 
-                {/* Info */}
-                <div className="p-3">
-                    <p className="text-sm font-medium text-gray-900 truncate">{artwork.title}</p>
-                    <p className="text-xs text-gray-400 truncate">{artwork.creator_name}</p>
-                    <p className="text-sm font-semibold text-gray-900 mt-1">${artwork.price}</p>
-                </div>
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
+                    {/* Save button - top right */}
+                    <div className="flex justify-end">
+                        <button
+                            onClick={toggleSave}
+                            className="w-9 h-9 rounded-full bg-white/90 dark:bg-[#1e1e1e]/90 shadow-md flex items-center justify-center hover:scale-110 transition"
+                        >
+                            {saved
+                                ? <img src="/assets/liked-button.png" alt="Liked" className="w-5 h-5" />
+                                : <img src="/assets/like-button.png" alt="Save" className="w-5 h-5" />
+                            }
+                        </button>
+                    </div>
 
+                    {/* Bottom info */}
+                    <div>
+                        <p className="text-sm font-semibold text-white truncate">{artwork.title}</p>
+                        <p className="text-xs text-white/70 truncate">{artwork.creator_name}</p>
+                        <div className="flex items-center justify-between mt-1">
+                            <p className="text-sm font-bold text-white">${artwork.price}</p>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                                artwork.status === 'available'
+                                    ? 'bg-[#9440dd] text-white'
+                                    : 'bg-gray-600 text-gray-200'
+                            }`}>
+                                {artwork.status?.replace('_', ' ')}
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </Link>
     );
