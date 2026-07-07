@@ -5,12 +5,13 @@ import ReviewForm from '../components/ReviewForm.jsx';
 import { getArtwork, updateStatus, updateArtwork, deleteArtwork } from '../services/artworks.js';
 import { getReviews } from '../services/reviews.js';
 import { useAuth } from '../hooks/useAuthContext.jsx';
-import { createIntent, confirmPurchase, getPurchases } from '../services/purchases.js';
+import { createIntent, getPurchases } from '../services/purchases.js';
 import api from '../services/api.js';
 import SafeImage from '../components/SafeImage.jsx';
 import { resolveImage } from '../utils/image.js';
 import { trackClick } from '../services/tracking.js';
 import { submitReport } from '../services/admin.js';
+import PurchaseModal from '../components/PurchaseModal.jsx';
 
 export default function ArtworkDetailPage() {
     const { id }       = useParams();
@@ -32,6 +33,8 @@ export default function ArtworkDetailPage() {
     const [reportLoading, setReportLoading] = useState(false);
     const [reportSuccess, setReportSuccess] = useState('');
     const [reportError, setReportError]     = useState('');
+    const [clientSecret, setClientSecret] = useState(null);
+    const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
     useEffect(() => {
         if (user) trackClick(parseInt(id));
@@ -82,21 +85,39 @@ export default function ArtworkDetailPage() {
     };
 
     const handlePurchase = async () => {
+
         setPurchasing(true);
+
         try {
+
             const intentRes = await createIntent(artwork.id);
-            await confirmPurchase({
-                payment_intent_id: intentRes.data.client_secret.split('_secret_')[0],
-                artwork: artwork.id,
-            });
-            setPurchased(true);
-            setArtwork(a => ({ ...a, status: 'sold' }));
-            alert('Purchase successful!');
+
+            setClientSecret(intentRes.data.client_secret);
+
+            setShowPurchaseModal(true);
+
         } catch (err) {
-            alert(err.response?.data?.error || 'Purchase failed.');
+
+            alert(err.response?.data?.error || 'Could not start checkout.');
+
         } finally {
+
             setPurchasing(false);
+
         }
+
+    };
+
+    const handlePurchaseSuccess = () => {
+
+        setShowPurchaseModal(false);
+
+        setPurchased(true);
+
+        setArtwork(a => ({ ...a, status: 'sold' }));
+
+        alert('Purchase successful!');
+
     };
 
     const handleStatusChange = async (status) => {
@@ -348,6 +369,15 @@ export default function ArtworkDetailPage() {
                                 <div className="w-full text-center py-3 rounded-xl text-sm font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800">
                                     ✓ You own this artwork
                                 </div>
+                            )}
+
+                            {showPurchaseModal && (
+                                <PurchaseModal
+                                    artwork={artwork}
+                                    clientSecret={clientSecret}
+                                    onSuccess={handlePurchaseSuccess}
+                                    onClose={() => setShowPurchaseModal(false)}
+                                />
                             )}
 
                             {canReview && !showReview && (
