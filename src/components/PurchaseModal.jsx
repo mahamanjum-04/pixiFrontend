@@ -15,38 +15,37 @@ function CheckoutForm({ artwork, onSuccess, onClose }) {
         setSubmitting(true);
         setError('');
 
-        const { error: submitError } = await elements.submit();
-        if (submitError) {
-            setError(submitError.message);
-            setSubmitting(false);
-            return;
-        }
-
-        const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
-            elements,
-            redirect: 'if_required',
-        });
-
-        if (confirmError) {
-            setError(confirmError.message || 'Payment failed.');
-            setSubmitting(false);
-            return;
-        }
-
-        if (paymentIntent && paymentIntent.status === 'succeeded') {
-            try {
-                await confirmPurchase({
-                    payment_intent_id: paymentIntent.id,
-                    artwork: artwork.id,
-                });
-                onSuccess();
-            } catch (err) {
-                setError(err.response?.data?.error || 'Purchase failed.');
+        try {
+            const { error: submitError } = await elements.submit();
+            if (submitError) {
+                setError(submitError.message);
+                setSubmitting(false);
+                return;
             }
-        } else {
-            setError('Payment not completed.');
+
+            const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
+                elements,
+                redirect: 'if_required',
+            });
+
+            if (confirmError) {
+                setError(confirmError.message || 'Payment failed.');
+                setSubmitting(false);
+                return;
+            }
+
+            if (paymentIntent?.status === 'succeeded') {
+                await confirmPurchase({ payment_intent_id: paymentIntent.id, artwork: artwork.id });
+                onSuccess();
+            } else {
+                setError(`Payment status: ${paymentIntent?.status || 'unknown'}`);
+            }
+        } catch (err) {
+            console.error('Stripe confirmPayment threw:', err);
+            setError(err.message || 'Something went wrong processing payment.');
+        } finally {
+            setSubmitting(false);
         }
-        setSubmitting(false);
     };
 
     return (
@@ -72,7 +71,7 @@ export default function PurchaseModal({ artwork, clientSecret, onSuccess, onClos
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 w-full max-w-md">
                 <h2 className="text-lg font-semibold mb-4">Complete your purchase</h2>
-                <Elements stripe={getStripe()} options={{ clientSecret }}>
+                <Elements key={clientSecret} stripe={getStripe()} options={{ clientSecret }}>
                     <CheckoutForm artwork={artwork} onSuccess={onSuccess} onClose={onClose} />
                 </Elements>
             </div>
