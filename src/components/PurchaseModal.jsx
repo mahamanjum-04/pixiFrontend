@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { stripePromise } from '../lib/stripe.js';
+import { getStripe } from '../lib/stripe.js';
 import { confirmPurchase } from '../services/purchases.js';
 
 function CheckoutForm({ artwork, onSuccess, onClose }) {
@@ -72,7 +72,7 @@ export default function PurchaseModal({ artwork, clientSecret, onSuccess, onClos
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 w-full max-w-md">
                 <h2 className="text-lg font-semibold mb-4">Complete your purchase</h2>
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <Elements stripe={getStripe()} options={{ clientSecret }}>
                     <CheckoutForm artwork={artwork} onSuccess={onSuccess} onClose={onClose} />
                 </Elements>
             </div>
