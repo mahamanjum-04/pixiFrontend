@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar.jsx';
 import ReviewForm from '../components/ReviewForm.jsx';
 import { getArtwork, updateStatus, updateArtwork, deleteArtwork } from '../services/artworks.js';
 import { getReviews } from '../services/reviews.js';
-import { useAuth } from '../hooks/useAuthContext.jsx';
+import { useAuth } from '../hooks/useAuth.jsx';
 import { createIntent, getPurchases } from '../services/purchases.js';
 import api from '../services/api.js';
 import SafeImage from '../components/SafeImage.jsx';

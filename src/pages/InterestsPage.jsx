@@ -2,7 +2,7 @@ import { useState, useEffect  } from 'react';
 import { useNavigate } from 'react-router-dom';
 import InterestsPicker from '../components/InterestsPicker.jsx';
 import { getInterests, saveInterests } from '../services/interests.js';
-import { useAuth } from '../hooks/useAuthContext.jsx';
+import { useAuth } from '../hooks/useAuth.jsx';
 import useDarkMode from '../hooks/useDarkMode.js';
 
 export default function InterestsPage() {

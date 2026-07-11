@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register as registerRequest } from '../services/auth.js';
-import { useAuth } from '../hooks/useAuthContext.jsx';
+import { useAuth } from '../hooks/useAuth.jsx';
 import useDarkMode from '../hooks/useDarkMode.js';
 
 export default function RegisterPage() {

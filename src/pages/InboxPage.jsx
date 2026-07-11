@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
-import { useAuth } from '../hooks/useAuthContext.jsx';
+import { useAuth } from '../hooks/useAuth.jsx';
 import {
     getRequests, sendRequest, acceptRequest, rejectRequest
 } from '../services/messaging';

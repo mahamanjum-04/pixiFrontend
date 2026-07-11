@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import ArtworkCard from '../components/ArtworkCard.jsx';
-import { useAuth } from '../hooks/useAuthContext.jsx';
+import { useAuth } from '../hooks/useAuth.jsx';
 import api from '../services/api.js';
 import { getArtworks } from '../services/artworks.js';
 
