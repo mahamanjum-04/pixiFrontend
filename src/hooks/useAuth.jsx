@@ -76,6 +76,20 @@ export function AuthProvider({ children }) {
         setUser(null);
     }, []);
 
+
+    const setAuth = useCallback((tokens, userData) => {
+    if (tokens) {
+        localStorage.setItem('access_token', tokens.access);
+        localStorage.setItem('refresh_token', tokens.refresh);
+        setAccessToken(tokens.access);
+    }
+    if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+    }
+}, []);
+
+
     // Context value
     const value = {
         user,
@@ -83,6 +97,7 @@ export function AuthProvider({ children }) {
         loading,
         login,
         logout,
+        setAuth,
         isAuthenticated: !!accessToken && !!user,
     };
 

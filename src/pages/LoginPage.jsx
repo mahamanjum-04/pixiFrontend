@@ -1,44 +1,53 @@
+// src/pages/LoginPage.jsx
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login as loginRequest, googleLogin as googleLoginRequest } from '../services/auth.js';
+import { googleLogin as googleLoginRequest } from '../services/auth.js';  // only for Google
 import { useAuth } from '../hooks/useAuth.jsx';
 import useDarkMode from '../hooks/useDarkMode.js';
 
 export default function LoginPage() {
-    const { login } = useAuth();
-    const navigate  = useNavigate();
-    const [dark]    = useDarkMode();
+    const { login, setAuth } = useAuth();   // ✅ get setAuth for Google
+    const navigate = useNavigate();
+    const [dark] = useDarkMode();
 
-    const [form, setForm]       = useState({ username: '', password: '' });
-    const [error, setError]     = useState('');
-    const [loading, setLoading]       = useState(false);
+    // ✅ State uses 'email' consistently
+    const [form, setForm] = useState({ email: '', password: '' });
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
 
     const handleChange = e =>
         setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
+    // ── Normal login ────────────────────────────────────────────────
     const handleSubmit = async () => {
         setError('');
-        if (!form.username || !form.password) {
+        if (!form.email || !form.password) {
             setError('Please fill in all fields.');
             return;
         }
         setLoading(true);
         try {
-            const res = await loginRequest(form);
-            const { access, refresh, user } = res.data;
-            login({ access, refresh }, user);
-            if (!user.has_set_interests) navigate('/interests');
-            else if (user.is_creator) navigate('/portfolio');
-            else navigate('/browse');
+            // ✅ Call auth context login with email and password
+            const result = await login(form.email, form.password);
+            if (result.success) {
+                // ✅ Login succeeded – redirect
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (!user.has_set_interests) navigate('/interests');
+                else if (user.is_creator) navigate('/portfolio');
+                else navigate('/browse');
+            } else {
+                setError(result.error || 'Invalid email or password.');
+            }
         } catch (err) {
-            setError(err.response?.data?.error || 'Invalid username or password.');
+            setError('Something went wrong. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
-    /* ── Google OAuth ─────────────────────────────────────────────── */
+    // ── Google login ──────────────────────────────────────────────────
     useEffect(() => {
         const handleCredentialResponse = async (response) => {
             setError('');
@@ -46,7 +55,8 @@ export default function LoginPage() {
             try {
                 const res = await googleLoginRequest({ access_token: response.credential });
                 const { access, refresh, user } = res.data;
-                login({ access, refresh }, user);
+                // ✅ Use setAuth (new method) to store tokens and user
+                setAuth({ access, refresh }, user);
                 if (!user.has_set_interests) navigate('/interests');
                 else if (user.is_creator) navigate('/portfolio');
                 else navigate('/browse');
@@ -76,7 +86,6 @@ export default function LoginPage() {
             }
         };
 
-        // Wait for Google library to load
         if (window.google) {
             initGoogle();
         } else {
@@ -88,13 +97,13 @@ export default function LoginPage() {
             }, 100);
             return () => clearInterval(interval);
         }
-    }, [dark, login, navigate]);
+    }, [dark, setAuth, navigate]);
 
+    // ── UI ──
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] flex items-center justify-center px-4">
             <div className="w-full max-w-sm bg-white dark:bg-[#141414] rounded-2xl border border-gray-100 dark:border-gray-800 p-8">
 
-                {/* Logo */}
                 <div className="flex justify-center mb-4">
                     <img
                         src={dark ? "/assets/dark-logo.png" : "/assets/light-logo.png"}
@@ -114,13 +123,13 @@ export default function LoginPage() {
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                         <input
                             type="email"
                             name="email"
                             value={form.email}
                             onChange={handleChange}
-                            placeholder="your username"
+                            placeholder="you@example.com"
                             className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] focus:border-transparent"
                         />
                     </div>
@@ -153,14 +162,12 @@ export default function LoginPage() {
                     </Link>
                 </p>
 
-                {/* Divider */}
                 <div className="flex items-center gap-3 my-6">
                     <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
                     <span className="text-xs text-gray-400 dark:text-gray-500">Or continue with</span>
                     <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
                 </div>
 
-                {/* Google Sign-In button — the library renders its own button inside */}
                 {googleLoading && (
                     <p className="text-center text-xs text-gray-400 dark:text-gray-500 mb-2">Signing in with Google…</p>
                 )}
@@ -168,7 +175,7 @@ export default function LoginPage() {
                     <div id="google-signin-btn" className="w-full flex justify-center" />
                 ) : (
                     <p className="text-center text-xs text-amber-500 dark:text-amber-400">
-                        Google login is not configured. Set <code>VITE_GOOGLE_CLIENT_ID</code> in <code>.env</code>.
+                        Google login is not configured.
                     </p>
                 )}
 

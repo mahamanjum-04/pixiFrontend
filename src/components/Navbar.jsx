@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuthContext.jsx';
+import { useAuth } from '../hooks/useAuth.jsx';
 import NotificationBadge from './NotificationBadge.jsx';
 import useDarkMode from '../hooks/useDarkMode.js';
 
