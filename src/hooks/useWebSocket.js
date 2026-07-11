@@ -1,62 +1,99 @@
+// src/hooks/useWebSocket.js
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const getWsURL = (roomId) => {
-    if (import.meta.env.VITE_WS_URL) return `${import.meta.env.VITE_WS_URL}/ws/chat/${roomId}/`;
-    // Fall back to VITE_API_URL (converting http→ws, https→wss, strip /api suffix)
-    if (import.meta.env.VITE_API_URL) {
-        const wsBase = import.meta.env.VITE_API_URL
-            .replace(/^http/, 'ws')
-            .replace(/\/api\/?$/, '');
-        return `${wsBase}/ws/chat/${roomId}/`;
-    }
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    if (host.includes('localhost') || host.includes('127.0.0.1')) return `ws://localhost:8000/ws/chat/${roomId}/`;
-    return `${protocol}//${host}/ws/chat/${roomId}/`;
-};
-
 export function useWebSocket(roomId) {
-    const [messages, setMessages]   = useState([]);
+    const [messages, setMessages] = useState([]);
     const [connected, setConnected] = useState(false);
-    const wsRef                     = useRef(null);
+    const wsRef = useRef(null);
 
     useEffect(() => {
         if (!roomId) return;
-        const ws = new WebSocket(getWsURL(roomId));
-        wsRef.current = ws;
-        ws.onopen    = () => setConnected(true);
-        ws.onmessage = (e) => {
-            try {
-                const data = JSON.parse(e.data);
 
-                // Respond to server keep-alive pings
+        // ✅ STEP 1: Get the JWT token from localStorage
+        const token = localStorage.getItem('access_token');
+
+        if (!token) {
+            console.error('No access token found! User might not be logged in.');
+            return;
+        }
+
+        // ✅ STEP 2: Build WebSocket URL with token
+        const wsUrl = `ws://localhost:8000/ws/chat/${roomId}/?token=${token}`;
+
+        console.log('Connecting to WebSocket with auth token...');
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+            console.log('✅ WebSocket connected!');
+            setConnected(true);
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+
+                // Respond to server ping
                 if (data.type === 'ping') {
                     ws.send(JSON.stringify({ type: 'pong' }));
                     return;
                 }
 
-                setMessages(prev => [...prev, data]);
-            } catch {
-                // Non-JSON message from server — safe to ignore
+                // ✅ STEP 3: Add received message to state
+                if (data.message) {
+                    console.log('📩 Received:', data);
+                    setMessages(prev => [...prev, {
+                        message: data.message,
+                        user_id: data.user_id,
+                        sender_name: data.sender_name,
+                        timestamp: data.timestamp,
+                    }]);
+                }
+            } catch (error) {
+                console.error('Error parsing message:', error);
             }
         };
-        ws.onerror = (e) => console.error('WebSocket error:', e);
-        ws.onclose = () => setConnected(false);
-        return () => ws.close();
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket disconnected');
+            setConnected(false);
+        };
+
+        // Cleanup on unmount
+        return () => {
+            ws.close();
+        };
     }, [roomId]);
 
-    const sendMessage = useCallback((text, userId, senderName) => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-            const msg = {
-                message:     text,
-                user_id:     userId,
-                sender_name: senderName || '',
-                timestamp:   new Date().toISOString(),
-            };
-            wsRef.current.send(JSON.stringify({ message: text, user_id: userId }));
-            setMessages(prev => [...prev, msg]);
+    // ✅ STEP 4: Send message - ONLY the message text!
+    const sendMessage = useCallback((text) => {
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+            console.warn('WebSocket not connected');
+            return false;
+        }
+
+        try {
+            // ✅ ONLY send message - backend knows who user is from token
+            wsRef.current.send(JSON.stringify({
+                message: text
+            }));
+            console.log('📤 Sent:', text);
+            return true;
+        } catch (error) {
+            console.error('Error sending:', error);
+            return false;
         }
     }, []);
 
-    return { messages, setMessages, connected, sendMessage };
+    return {
+        messages,
+        setMessages,
+        connected,
+        sendMessage
+    };
 }

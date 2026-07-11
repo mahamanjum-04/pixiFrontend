@@ -1,65 +1,84 @@
-import { useState, useEffect, createContext, useCallback } from 'react';
-import { getMe } from '../services/auth.js';
-import { scheduleProactiveRefresh } from '../services/api.js';
+// src/hooks/useAuth.jsx
+
+import { createContext, useState, useEffect, useCallback } from 'react';
+import api from '../services/api.js';
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [user, setUser]       = useState(null);
+    const [user, setUser] = useState(null);
+    const [accessToken, setAccessToken] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // ✅ Load user if token exists on page load
     useEffect(() => {
-        let cancelled = false;
-
-        const fetchUser = async () => {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                if (!cancelled) setLoading(false);
-                return;
-            }
-            try {
-                const res = await getMe();
-                if (!cancelled) setUser(res.data);
-            } catch (err) {
-                // Only force-logout on 401 (token truly invalid after
-                // the interceptor had a chance to refresh).  Transient
-                // network errors should NOT wipe the session.
-                const isUnauthorized = err?.response?.status === 401;
-                if (isUnauthorized && !cancelled) {
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
-                    window.location.href = '/login';
-                }
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        };
-
-        fetchUser();
-        return () => { cancelled = true; };
-    }, []);
-
-    const login = useCallback((tokens, userData) => {
-        localStorage.setItem('access_token', tokens.access);
-        localStorage.setItem('refresh_token', tokens.refresh);
-        setUser(userData);
-        // Start proactive refresh so the token is renewed before expiry
-        scheduleProactiveRefresh();
-        // redirect to interests page on first login
-        if (!userData.has_set_interests) {
-            window.location.href = '/interests';
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            setAccessToken(token);
+            fetchUser(token);
+        } else {
+            setLoading(false);
         }
     }, []);
 
+    const fetchUser = async (token) => {
+        try {
+            const response = await api.get('/api/auth/me/', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setUser(response.data);
+        } catch (error) {
+            console.error('Failed to fetch user:', error);
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            setAccessToken(null);
+            setUser(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ✅ LOGIN - Save token to localStorage
+    const login = async (email, password) => {
+        try {
+            const response = await api.post('/api/auth/login/', { email, password });
+
+            // ✅ IMPORTANT: Save tokens
+            localStorage.setItem('access_token', response.data.access);
+            localStorage.setItem('refresh_token', response.data.refresh);
+
+            setAccessToken(response.data.access);
+            setUser(response.data.user);
+
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.detail || 'Login failed'
+            };
+        }
+    };
+
+    // ✅ LOGOUT - Remove tokens
     const logout = useCallback(() => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        setAccessToken(null);
         setUser(null);
-        window.location.href = '/login';
     }, []);
 
+    // ✅ Context value - MUST include accessToken
+    const value = {
+        user,
+        accessToken,  // ✅ IMPORTANT: This is used by useWebSocket
+        loading,
+        login,
+        logout,
+        isAuthenticated: !!accessToken && !!user,
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
