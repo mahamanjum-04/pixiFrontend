@@ -116,9 +116,9 @@ export default function LoginPage() {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
                         <input
-                            type="text"
-                            name="username"
-                            value={form.username}
+                            type="email"
+                            name="email"
+                            value={form.email}
                             onChange={handleChange}
                             placeholder="your username"
                             className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] focus:border-transparent"
