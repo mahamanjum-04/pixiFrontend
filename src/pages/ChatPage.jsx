@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth.jsx'; 
 import { useWebSocket } from '../hooks/useWebSocket';
 import { getChatHistory, sendMessage as sendRestMessage } from '../services/messaging';
 

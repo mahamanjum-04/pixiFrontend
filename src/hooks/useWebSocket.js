@@ -1,6 +1,7 @@
 // src/hooks/useWebSocket.js
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from './useAuth.jsx';
 
 export function useWebSocket(roomId) {
     const [messages, setMessages] = useState([]);
