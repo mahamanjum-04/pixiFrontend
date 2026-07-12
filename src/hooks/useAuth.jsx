@@ -55,6 +55,7 @@ export function AuthProvider({ children }) {
             // Save tokens
             localStorage.setItem('access_token', response.data.access);
             localStorage.setItem('refresh_token', response.data.refresh);
+            localStorage.setItem('user', JSON.stringify(user));
 
             setAccessToken(response.data.access);
             setUser(response.data.user);
@@ -81,6 +82,7 @@ export function AuthProvider({ children }) {
     if (tokens) {
         localStorage.setItem('access_token', tokens.access);
         localStorage.setItem('refresh_token', tokens.refresh);
+
         setAccessToken(tokens.access);
     }
     if (userData) {
