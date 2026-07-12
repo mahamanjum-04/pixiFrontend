@@ -1,27 +1,29 @@
 // src/pages/LoginPage.jsx
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { googleLogin as googleLoginRequest } from '../services/auth.js';  // only for Google
+import { googleLogin as googleLoginRequest } from '../services/auth.js';
 import { useAuth } from '../hooks/useAuth.jsx';
 import useDarkMode from '../hooks/useDarkMode.js';
 
 export default function LoginPage() {
-    const { login, setAuth } = useAuth();   // ✅ get setAuth for Google
+    const { login, setAuth } = useAuth();
     const navigate = useNavigate();
     const [dark] = useDarkMode();
 
-    // ✅ State uses 'email' consistently
     const [form, setForm] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
 
-    const handleChange = e =>
-        setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+    // ✅ Ref to prevent multiple Google initializations
+    const googleInitialized = useRef(false);
 
-    // ── Normal login ────────────────────────────────────────────────
-        const handleSubmit = async () => {
+    const handleChange = (e) =>
+        setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+
+    // ── Email/Password Login ─────────────────────────────────────
+    const handleSubmit = async () => {
         setError('');
         if (!form.email || !form.password) {
             setError('Please fill in all fields.');
@@ -30,39 +32,33 @@ export default function LoginPage() {
         setLoading(true);
         try {
             const result = await login(form.email, form.password);
-            console.log('Login result:', result);   // ✅ Add this to debug
-
             if (result.success) {
-                const user = result.user;   // ✅ Use returned user
-                console.log('User from result:', user);   // ✅ Debug
-
-                if (!user.has_set_interests) {
-                    navigate('/interests');
-                } else if (user.is_creator) {
-                    navigate('/portfolio');
-                } else {
-                    navigate('/browse');
-                }
+                const user = result.user;
+                if (!user.has_set_interests) navigate('/interests');
+                else if (user.is_creator) navigate('/portfolio');
+                else navigate('/browse');
             } else {
                 setError(result.error || 'Invalid email or password.');
             }
         } catch (err) {
-            console.error('Unexpected error:', err);   // ✅ Debug
             setError('Something went wrong. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
-    // ── Google login ──────────────────────────────────────────────────
+    // ── Google Login ──────────────────────────────────────────────
     useEffect(() => {
+        // Only initialize once
+        if (googleInitialized.current) return;
+        if (!window.google || !import.meta.env.VITE_GOOGLE_CLIENT_ID) return;
+
         const handleCredentialResponse = async (response) => {
             setError('');
             setGoogleLoading(true);
             try {
                 const res = await googleLoginRequest({ access_token: response.credential });
                 const { access, refresh, user } = res.data;
-                // ✅ Use setAuth (new method) to store tokens and user
                 setAuth({ access, refresh }, user);
                 if (!user.has_set_interests) navigate('/interests');
                 else if (user.is_creator) navigate('/portfolio');
@@ -75,24 +71,25 @@ export default function LoginPage() {
         };
 
         const initGoogle = () => {
-            if (window.google && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
-                window.google.accounts.id.initialize({
-                    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-                    callback: handleCredentialResponse,
-                });
-                window.google.accounts.id.renderButton(
-                    document.getElementById('google-signin-btn'),
-                    {
-                        theme: dark ? 'filled_black' : 'outline',
-                        size: 'large',
-                        width: '100%',
-                        shape: 'rectangular',
-                        text: 'continue_with',
-                    }
-                );
-            }
+            window.google.accounts.id.initialize({
+                client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+                callback: handleCredentialResponse,
+            });
+            window.google.accounts.id.renderButton(
+                document.getElementById('google-signin-btn'),
+                {
+                    theme: dark ? 'filled_black' : 'outline',
+                    size: 'large',
+                    // ✅ Remove width: '100%' – use a valid number or omit
+                    // width: 350,   // optional: set a pixel value
+                    shape: 'rectangular',
+                    text: 'continue_with',
+                }
+            );
+            googleInitialized.current = true;
         };
 
+        // Wait for Google library to load
         if (window.google) {
             initGoogle();
         } else {
@@ -104,7 +101,7 @@ export default function LoginPage() {
             }, 100);
             return () => clearInterval(interval);
         }
-    }, [dark, setAuth, navigate]);
+    }, [dark, navigate, setAuth]);
 
     // ── UI ──
     return (
@@ -128,7 +125,7 @@ export default function LoginPage() {
                     </div>
                 )}
 
-                <div className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                         <input
@@ -149,18 +146,17 @@ export default function LoginPage() {
                             onChange={handleChange}
                             placeholder="••••••••"
                             className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] focus:border-transparent"
-                            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                         />
                     </div>
-                </div>
 
-                <button
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    className="mt-6 w-full bg-[#9440dd] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[#7d36c0] transition disabled:opacity-50"
-                >
-                    {loading ? 'Signing in...' : 'Sign in'}
-                </button>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-[#9440dd] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[#7d36c0] transition disabled:opacity-50"
+                    >
+                        {loading ? 'Signing in...' : 'Sign in'}
+                    </button>
+                </form>
 
                 <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
                     Don't have an account?{' '}
