@@ -16,7 +16,7 @@ export default function RoleRoute({ children, roles }) {
     const hasRole =
         (roles.includes('creator') && user.is_creator) ||
         (roles.includes('buyer')   && user.is_buyer)   ||
-        (roles.includes('admin')   && user.is_staff);
+        (roles.includes('admin')   && (user.is_superuser || user.is_staff));
 
     if (!hasRole) return <Navigate to="/browse" replace />;
     return children;
