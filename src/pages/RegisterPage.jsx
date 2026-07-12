@@ -5,14 +5,14 @@ import { useAuth } from '../hooks/useAuth.jsx';
 import useDarkMode from '../hooks/useDarkMode.js';
 
 export default function RegisterPage() {
-    const { login } = useAuth();
-    const navigate  = useNavigate();
-    const [dark]    = useDarkMode();
+    const { setAuth } = useAuth();   // ✅ Use setAuth instead of login
+    const navigate = useNavigate();
+    const [dark] = useDarkMode();
 
     const [form, setForm] = useState({
         username: '', email: '', password: '', is_creator: false, is_buyer: true,
     });
-    const [error, setError]     = useState('');
+    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleChange = e =>
@@ -38,10 +38,18 @@ export default function RegisterPage() {
         try {
             const res = await registerRequest(form);
             const { access, refresh, user } = res.data;
-            login({ access, refresh }, user);
-            if (!user.has_set_interests) navigate('/interests');
-            else if (user.is_creator) navigate('/portfolio');
-            else navigate('/browse');
+
+            // ✅ Save tokens and user via setAuth
+            setAuth({ access, refresh }, user);
+
+            // ✅ Redirect to interests or appropriate page
+            if (!user.has_set_interests) {
+                navigate('/interests');
+            } else if (user.is_creator) {
+                navigate('/portfolio');
+            } else {
+                navigate('/browse');
+            }
         } catch (err) {
             setError(err.response?.data?.error || 'Registration failed. Please try again.');
         } finally {
@@ -49,6 +57,7 @@ export default function RegisterPage() {
         }
     };
 
+    // Rest of the JSX remains exactly the same
     return (
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex items-center justify-center px-4">
             <div className="w-full max-w-sm bg-gray-50 dark:bg-[#141414] rounded-2xl border border-gray-100 dark:border-gray-800 p-8">
