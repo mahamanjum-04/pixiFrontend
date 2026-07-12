@@ -21,7 +21,7 @@ export default function LoginPage() {
         setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
     // ── Normal login ────────────────────────────────────────────────
-    const handleSubmit = async () => {
+        const handleSubmit = async () => {
         setError('');
         if (!form.email || !form.password) {
             setError('Please fill in all fields.');
@@ -29,19 +29,25 @@ export default function LoginPage() {
         }
         setLoading(true);
         try {
-            // ✅ Call auth context login with email and password
             const result = await login(form.email, form.password);
+            console.log('Login result:', result);   // ✅ Add this to debug
+
             if (result.success) {
-                // ✅ Login succeeded – redirect
-                const user = result.user;
-                
-                if (!user.has_set_interests) navigate('/interests');
-                else if (user.is_creator) navigate('/portfolio');
-                else navigate('/browse');
+                const user = result.user;   // ✅ Use returned user
+                console.log('User from result:', user);   // ✅ Debug
+
+                if (!user.has_set_interests) {
+                    navigate('/interests');
+                } else if (user.is_creator) {
+                    navigate('/portfolio');
+                } else {
+                    navigate('/browse');
+                }
             } else {
                 setError(result.error || 'Invalid email or password.');
             }
         } catch (err) {
+            console.error('Unexpected error:', err);   // ✅ Debug
             setError('Something went wrong. Please try again.');
         } finally {
             setLoading(false);
