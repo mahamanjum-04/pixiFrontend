@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
             setAccessToken(response.data.access);
             setUser(response.data.user);
 
-            return { success: true };
+            return { success: true, user };
         } catch (error) {
             return {
                 success: false,

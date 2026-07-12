@@ -33,7 +33,8 @@ export default function LoginPage() {
             const result = await login(form.email, form.password);
             if (result.success) {
                 // ✅ Login succeeded – redirect
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const user = result.user;
+                
                 if (!user.has_set_interests) navigate('/interests');
                 else if (user.is_creator) navigate('/portfolio');
                 else navigate('/browse');
