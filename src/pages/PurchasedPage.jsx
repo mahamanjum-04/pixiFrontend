@@ -17,6 +17,7 @@ export default function PurchasedPage() {
         const fetchPurchases = async () => {
             try {
                 const res = await getPurchases();
+                console.log('Purchase data:', res.data);
                 if (!cancelled) setPurchases(res.data);
             } catch {
                 if (!cancelled) setError('Failed to load purchases.');
