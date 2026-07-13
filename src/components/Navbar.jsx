@@ -53,19 +53,34 @@ export default function Navbar() {
                     </Link>
                 )}
 
-                {/* Saved artworks - everyone */}
-                <Link
-                    to="/saved"
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#0a0a0a] transition"
-                    aria-label="Saved artworks"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-                    </svg>
-                </Link>
 
                 {/* Right: Icons */}
                 <div className="flex items-center gap-3">
+
+                    {/* Saved artworks - everyone */}
+                    <Link
+                        to="/saved"
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#0a0a0a] transition"
+                        aria-label="Saved artworks"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                        </svg>
+                    </Link>
+
+                    {/* Purchased artworks - buyers only */}
+                    {user?.is_buyer && (
+                        <Link
+                            to="/purchased"
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#0a0a0a] transition"
+                            aria-label="Purchased artworks"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.75-4.797 1.75-7.35 0-.328-.011-.652-.033-.975a1.125 1.125 0 00-1.108-1.087H5.106M7.5 14.25L5.106 5.272M6 18.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                            </svg>
+                        </Link>
+                    )}
+
                     {/* Messages */}
                     <Link
                         to="/inbox"
@@ -170,6 +185,19 @@ export default function Navbar() {
                     </svg>
                     <span className="text-[10px] font-medium">Saved</span>
                 </Link>
+
+                {/* Purchased - buyers only */}
+                {user?.is_buyer && (
+                    <Link
+                        to="/purchased"
+                        className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition ${isActive('/purchased') ? 'text-[#9440dd]' : 'text-gray-400'}`}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={isActive('/purchased') ? 2.5 : 1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.75-4.797 1.75-7.35 0-.328-.011-.652-.033-.975a1.125 1.125 0 00-1.108-1.087H5.106M7.5 14.25L5.106 5.272M6 18.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                        </svg>
+                        <span className="text-[10px] font-medium">Purchased</span>
+                    </Link>
+                )}
 
                 {user?.is_creator && (
                     <Link
