@@ -4,7 +4,6 @@ import Navbar from '../components/Navbar.jsx';
 import ReviewForm from '../components/ReviewForm.jsx';
 import { getPurchases } from '../services/purchases.js';
 import { resolveImage } from '../utils/image.js';
-import { getArtwork } from '../services/artworks.js';
 
 export default function PurchasedPage() {
     const [purchases, setPurchases] = useState([]);
@@ -18,25 +17,8 @@ export default function PurchasedPage() {
         const fetchPurchases = async () => {
             try {
                 const res = await getPurchases();
-                if (!cancelled) {
-                    // Fetch each artwork to get full data with image
-                    const fullPurchases = await Promise.all(
-                        res.data.map(async (p) => {
-                            try {
-                                const artRes = await getArtwork(p.artwork);
-                                return {
-                                    ...p,
-                                    artwork_image: artRes.data.image,
-                                    artwork_title: artRes.data.title,
-                                    artwork_status: artRes.data.status
-                                };
-                            } catch {
-                                return null; // Skip if artwork not found
-                            }
-                        })
-                    );
-                    setPurchases(fullPurchases.filter(Boolean));
-                }
+                console.log('Purchase data:', res.data);
+                if (!cancelled) setPurchases(res.data);
             } catch {
                 if (!cancelled) setError('Failed to load purchases.');
             } finally {
