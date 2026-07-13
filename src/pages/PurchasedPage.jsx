@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar.jsx';
 import ReviewForm from '../components/ReviewForm.jsx';
 import { getPurchases } from '../services/purchases.js';
 import { resolveImage } from '../utils/image.js';
+import { getArtwork } from '../services/artworks.js';
 
 export default function PurchasedPage() {
     const [purchases, setPurchases] = useState([]);
