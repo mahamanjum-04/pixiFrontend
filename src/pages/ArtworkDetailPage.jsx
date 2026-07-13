@@ -38,15 +38,20 @@ export default function ArtworkDetailPage() {
 
     useEffect(() => {
         if (user) trackClick(parseInt(id));
-        Promise.all([
-            getArtwork(id),
-            getReviews(id),
-        ])
-            .then(([artRes, revRes]) => {
-                setArtwork(artRes.data);
-                setReviews(revRes.data);
+
+        Promise.allSettled([getArtwork(id), getReviews(id)])
+            .then(([artResult, revResult]) => {
+                if (artResult.status === 'fulfilled') {
+                    setArtwork(artResult.value.data);
+                } else if (artResult.reason?.response?.status === 404) {
+                    setError('This artwork listing is no longer available.');
+                } else {
+                    setError('Failed to load artwork.');
+                }
+                if (revResult.status === 'fulfilled') {
+                    setReviews(revResult.value.data);
+                }
             })
-            .catch(() => setError('Failed to load artwork.'))
             .finally(() => setLoading(false));
 
         if (user) {
@@ -283,9 +288,9 @@ export default function ArtworkDetailPage() {
                                                 onClick={() => setReportReason(r)}
                                                 className={`px-3 py-1 rounded-full text-xs border transition capitalize
                                                     ${reportReason === r
-                                                        ? 'bg-[#9440dd] text-white border-[#9440dd]'
-                                                        : 'bg-white dark:bg-[#0a0a0a] text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-400'
-                                                    }`}
+                                                    ? 'bg-[#9440dd] text-white border-[#9440dd]'
+                                                    : 'bg-white dark:bg-[#0a0a0a] text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-400'
+                                                }`}
                                             >
                                                 {r}
                                             </button>
