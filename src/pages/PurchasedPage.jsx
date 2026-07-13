@@ -17,8 +17,25 @@ export default function PurchasedPage() {
         const fetchPurchases = async () => {
             try {
                 const res = await getPurchases();
-                console.log('Purchase data:', res.data);
-                if (!cancelled) setPurchases(res.data);
+                if (!cancelled) {
+                    // Fetch each artwork to get full data with image
+                    const fullPurchases = await Promise.all(
+                        res.data.map(async (p) => {
+                            try {
+                                const artRes = await getArtwork(p.artwork);
+                                return {
+                                    ...p,
+                                    artwork_image: artRes.data.image,
+                                    artwork_title: artRes.data.title,
+                                    artwork_status: artRes.data.status
+                                };
+                            } catch {
+                                return null; // Skip if artwork not found
+                            }
+                        })
+                    );
+                    setPurchases(fullPurchases.filter(Boolean));
+                }
             } catch {
                 if (!cancelled) setError('Failed to load purchases.');
             } finally {
