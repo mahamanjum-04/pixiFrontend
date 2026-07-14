@@ -1,7 +1,11 @@
 import axios from 'axios';
 
 const getBaseURL = () => {
-    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+    if (import.meta.env.VITE_API_URL) {
+        console.log('✅ Using VITE_API_URL:', import.meta.env.VITE_API_URL);
+        return import.meta.env.VITE_API_URL;
+    }
+    console.warn('⚠️ VITE_API_URL not set, using fallback');
     const protocol = window.location.protocol;
     const host = window.location.host;
     if (host.includes('localhost') || host.includes('127.0.0.1')) return 'http://localhost:8000';
