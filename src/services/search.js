@@ -1,4 +1,4 @@
-import searchApi from './api.js';
+import {searchApi} from './api.js';
 
 export const searchByText = (query) =>
     searchApi.post('/api/artworks/search/text/', { query });

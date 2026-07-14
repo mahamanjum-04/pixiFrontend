@@ -144,4 +144,5 @@ api.interceptors.response.use(
 );
 
 export { scheduleProactiveRefresh };
-export { api, searchApi };
+export default api;
+export { searchApi };
