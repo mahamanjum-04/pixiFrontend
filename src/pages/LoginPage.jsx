@@ -33,10 +33,12 @@ export default function LoginPage() {
         console.log('Login result:', result);   // ✅ Add this to debug
 
         if (result.success) {
-            const user = result.user;   // ✅ Use returned user
-            console.log('User from result:', user);   // ✅ Debug
+            const user = result.user;
+            console.log('User from result:', user);
 
-            if (!user.has_set_interests) {
+            if (user.is_superuser || user.is_staff) {
+                navigate('/admin');
+            } else if (!user.has_set_interests) {
                 navigate('/interests');
             } else if (user.is_creator) {
                 navigate('/portfolio');
@@ -64,7 +66,8 @@ export default function LoginPage() {
                 const { access, refresh, user } = res.data;
                 // ✅ Use setAuth (new method) to store tokens and user
                 setAuth({ access, refresh }, user);
-                if (!user.has_set_interests) navigate('/interests');
+                if (user.is_superuser || user.is_staff) navigate('/admin');
+                else if (!user.has_set_interests) navigate('/interests');
                 else if (user.is_creator) navigate('/portfolio');
                 else navigate('/browse');
             } catch (err) {
