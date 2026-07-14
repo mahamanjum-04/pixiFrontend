@@ -12,8 +12,20 @@ const getBaseURL = () => {
     return `${protocol}//${host}`;
 };
 
+const getSearchBaseURL = () => {
+    return import.meta.env.VITE_SEARCH_API_URL || 'https://pixi-tem-pixi-ai-service.hf.space';
+};
+
+// Default API client (for everything except search)
 const api = axios.create({
     baseURL: getBaseURL(),
+    timeout: 30000,
+});
+
+// Separate client for search endpoints
+const searchApi = axios.create({
+    baseURL: getSearchBaseURL(),
+    timeout: 30000,
 });
 
 api.interceptors.request.use(config => {
@@ -132,4 +144,4 @@ api.interceptors.response.use(
 );
 
 export { scheduleProactiveRefresh };
-export default api;
+export { api, searchApi };
