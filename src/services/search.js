@@ -5,6 +5,6 @@ export const searchByText = (query) =>
 
 export const searchByImage = (imageFile) => {
     const formData = new FormData();
-    formData.append('image', imageFile);
+    formData.append('file', imageFile);
     return searchApi.post('/api/artworks/search/image/', formData);
 };
