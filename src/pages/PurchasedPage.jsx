@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import ReviewForm from '../components/ReviewForm.jsx';
 import { getPurchases } from '../services/purchases.js';
+import { resolveImage } from '../utils/image.js';
 
 export default function PurchasedPage() {
     const [purchases, setPurchases] = useState([]);
@@ -16,6 +17,7 @@ export default function PurchasedPage() {
         const fetchPurchases = async () => {
             try {
                 const res = await getPurchases();
+                console.log('Purchase data:', res.data);
                 if (!cancelled) setPurchases(res.data);
             } catch {
                 if (!cancelled) setError('Failed to load purchases.');
@@ -83,10 +85,17 @@ export default function PurchasedPage() {
 
                                     {/* Thumbnail */}
                                     <Link to={`/artworks/${p.artwork}`} className="flex-shrink-0">
-                                        <div className="w-20 h-20 rounded-lg bg-gray-100 dark:bg-[#0a0a0a] overflow-hidden border border-gray-200 dark:border-gray-700">
-                                            <div className="w-full h-full flex items-center justify-center text-gray-200 text-2xl">
-                                                🖼
-                                            </div>
+                                        <div className="w-20 h-20 rounded-lg bg-gray-100 dark:bg-[#0a0a0a] overflow-hidden border border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                                            {p.artwork_image ? (
+                                                <img
+                                                    src={resolveImage(p.artwork_image)}
+                                                    alt={p.artwork_title}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                />
+                                            ) : (
+                                                <span className="text-gray-200 text-2xl">🖼</span>
+                                            )}
                                         </div>
                                     </Link>
 

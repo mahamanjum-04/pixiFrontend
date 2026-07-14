@@ -119,7 +119,16 @@ export default function ProfilePage() {
         } else if (activeTab === 'purchased' && isOwnProfile) {
             import('../services/purchases.js').then(({ getPurchases }) =>
                 getPurchases()
-                    .then(res => setTabArtworks(res.data))
+                    .then(res => {
+                        const normalized = res.data.map(p => ({
+                            id: p.artwork,
+                            title: p.artwork_title,
+                            image: p.artwork_image,
+                            price: p.amount_paid,
+                            purchased_at: p.purchased_at,
+                        }));
+                        setTabArtworks(normalized);
+                    })
                     .catch(() => setTabArtworks([]))
                     .finally(() => setTabLoading(false))
             );
