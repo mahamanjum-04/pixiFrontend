@@ -50,7 +50,9 @@ function CheckoutForm({ artwork, onSuccess, onClose }) {
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <PaymentElement />
+            <div className="min-h-[200px]">
+                <PaymentElement />
+            </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
             <button
                 type="submit"
@@ -59,7 +61,11 @@ function CheckoutForm({ artwork, onSuccess, onClose }) {
             >
                 {submitting ? 'Processing...' : `Pay $${artwork.price}`}
             </button>
-            <button type="button" onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700 transition">
+            <button
+                type="button"
+                onClick={onClose}
+                className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
+            >
                 Cancel
             </button>
         </form>
@@ -71,16 +77,16 @@ export default function PurchaseModal({ artwork, clientSecret, onSuccess, onClos
         <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
             onClick={(e) => {
-                // Close modal when clicking the backdrop
                 if (e.target === e.currentTarget) onClose();
             }}
         >
-            <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 w-full max-w-md max-h-[90vh] flex flex-col">
-                <div className="flex items-center justify-between mb-4 flex-shrink-0">
+            <div className="bg-white dark:bg-[#141414] rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col shadow-2xl">
+                {/* Header - fixed */}
+                <div className="flex items-center justify-between p-6 pb-2 flex-shrink-0">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Complete your purchase</h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#0a0a0a]"
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -88,8 +94,18 @@ export default function PurchaseModal({ artwork, clientSecret, onSuccess, onClos
                     </button>
                 </div>
 
+                {/* Artwork info - fixed */}
+                <div className="px-6 py-2 flex-shrink-0">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Purchasing: <span className="font-medium text-gray-900 dark:text-gray-100">{artwork.title}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                        by {artwork.creator_name}
+                    </p>
+                </div>
+
                 {/* Scrollable content */}
-                <div className="overflow-y-auto flex-1 pr-1 -mr-1">
+                <div className="px-6 py-4 overflow-y-auto flex-1">
                     <Elements key={clientSecret} stripe={getStripe()} options={{ clientSecret }}>
                         <CheckoutForm artwork={artwork} onSuccess={onSuccess} onClose={onClose} />
                     </Elements>

@@ -5,16 +5,15 @@ import { searchByText, searchByImage } from '../services/search.js';
 import { getArtwork } from '../services/artworks.js';
 
 export default function SearchPage() {
-    const [tab, setTab]           = useState('text');
-    const [query, setQuery]       = useState('');
+    const [tab, setTab] = useState('text');
+    const [query, setQuery] = useState('');
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
-    const [results, setResults]   = useState([]);
-    const [loading, setLoading]   = useState(false);
-    const [error, setError]       = useState('');
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [searched, setSearched] = useState(false);
 
-    // after getting IDs from search, fetch full artwork objects
     const fetchArtworkDetails = async (searchResults) => {
         const artworks = await Promise.all(
             searchResults.map(r =>
@@ -23,7 +22,7 @@ export default function SearchPage() {
                     .catch(() => null)
             )
         );
-        return artworks.filter(Boolean); // remove any failed fetches
+        return artworks.filter(Boolean);
     };
 
     const handleTextSearch = async () => {
@@ -32,7 +31,7 @@ export default function SearchPage() {
         setError('');
         setSearched(true);
         try {
-            const res     = await searchByText(query.trim());
+            const res = await searchByText(query.trim());
             const artworks = await fetchArtworkDetails(res.data.results);
             setResults(artworks);
         } catch {
@@ -58,7 +57,7 @@ export default function SearchPage() {
         setError('');
         setSearched(true);
         try {
-            const res      = await searchByImage(imageFile);
+            const res = await searchByImage(imageFile);
             const artworks = await fetchArtworkDetails(res.data.results);
             setResults(artworks);
         } catch {
@@ -95,16 +94,17 @@ export default function SearchPage() {
                 {/* Tabs */}
                 <div className="flex gap-2 mb-6">
                     {[
-                        { key: 'text',  label: '🔤 Text search'  },
+                        { key: 'text', label: '🔤 Text search' },
                         { key: 'image', label: '🖼 Image search' },
                     ].map(t => (
                         <button
                             key={t.key}
                             onClick={() => handleTabSwitch(t.key)}
                             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition
-                ${tab === t.key
+                                ${tab === t.key
                                 ? 'bg-[#9440dd] text-white'
-                                : 'bg-gray-100 dark:bg-[#141414] text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#1e1e1e]'}`}
+                                : 'bg-gray-100 dark:bg-[#141414] text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#1e1e1e]'
+                            }`}
                         >
                             {t.label}
                         </button>
@@ -194,7 +194,6 @@ export default function SearchPage() {
                             {results.map(a => (
                                 <div key={a.id} className="relative">
                                     <ArtworkCard artwork={a} />
-                                    {/* Similarity score badge */}
                                     <div className="absolute top-2 left-2 bg-black bg-opacity-60 text-white text-[10px] px-2 py-0.5 rounded-full">
                                         {Math.round(a.score * 100)}% match
                                     </div>
