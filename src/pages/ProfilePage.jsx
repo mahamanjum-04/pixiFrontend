@@ -312,14 +312,7 @@ export default function ProfilePage() {
                                         </Link>
                                     </>
                                 )}
-                                {isOwnProfile && (user?.is_superuser || user?.is_staff) && (
-                                    <Link
-                                        to="/admin/analytics"
-                                        className="px-4 py-2 bg-[#9440dd] text-white rounded-xl text-sm font-medium hover:bg-[#7d36c0] transition"
-                                    >
-                                        📊 Admin analytics
-                                    </Link>
-                                )}
+
                                 {!isOwnProfile && (
                                     <button
                                         onClick={() => setShowReport(r => !r)}
@@ -331,12 +324,74 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
-                        {/* ... rest of your JSX remains the same ... */}
-
                         {/* Report panel */}
                         {showReport && !isOwnProfile && (
-                            // ... keep your existing report panel JSX ...
-                            <div>Report panel content</div>
+                            <div className="bg-gray-50 dark:bg-[#141414] border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-8">
+                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">Report this user</p>
+
+                                {reportSuccess && (
+                                    <p className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-lg mb-3">
+                                        {reportSuccess}
+                                    </p>
+                                )}
+                                {reportError && (
+                                    <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mb-3">
+                                        {reportError}
+                                    </p>
+                                )}
+
+                                <div className="mb-3">
+                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Reason</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {REASONS.map(r => (
+                                            <button
+                                                key={r}
+                                                onClick={() => setReportReason(r)}
+                                                className={`px-3 py-1 rounded-full text-xs border transition capitalize
+                            ${reportReason === r
+                                                    ? 'bg-[#9440dd] text-white border-[#9440dd]'
+                                                    : 'bg-white dark:bg-[#0a0a0a] text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-400'
+                                                }`}
+                                            >
+                                                {r}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                        Additional details (optional)
+                                    </label>
+                                    <textarea
+                                        value={reportDesc}
+                                        onChange={e => setReportDesc(e.target.value)}
+                                        placeholder="Describe the issue..."
+                                        rows={2}
+                                        className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] resize-none"
+                                    />
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleReport}
+                                        disabled={reportLoading}
+                                        className="flex-1 bg-red-500 text-white py-2 rounded-lg text-xs font-medium hover:bg-red-600 transition disabled:opacity-50"
+                                    >
+                                        {reportLoading ? 'Submitting...' : 'Submit report'}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowReport(false);
+                                            setReportError('');
+                                            setReportDesc('');
+                                        }}
+                                        className="flex-1 border border-gray-200 dark:border-gray-700 py-2 rounded-lg text-xs text-gray-500 dark:text-gray-400 hover:border-gray-400 transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
                         )}
 
                         {/* Feedback */}
@@ -353,8 +408,112 @@ export default function ProfilePage() {
 
                         {/* Edit form */}
                         {editing && (
-                            // ... keep your existing edit form JSX ...
-                            <div>Edit form content</div>
+                            <div className="bg-gray-50 dark:bg-[#141414] border border-gray-100 dark:border-gray-800 rounded-2xl p-6 mb-8">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit Profile</h2>
+
+                                {/* Avatar upload */}
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-16 h-16 rounded-full bg-[#9440dd] overflow-hidden flex items-center justify-center flex-shrink-0">
+                                        {preview
+                                            ? <img src={resolveImage(preview)} alt="avatar" className="w-full h-full object-cover" />
+                                            : <span className="text-xl font-semibold text-white">
+                        {user?.username?.[0]?.toUpperCase() || 'U'}
+                    </span>
+                                        }
+                                    </div>
+                                    <button
+                                        onClick={() => document.getElementById('avatar-input').click()}
+                                        className="text-sm text-[#9440dd] hover:underline transition"
+                                    >
+                                        Change photo
+                                    </button>
+                                    <input
+                                        id="avatar-input"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleAvatar}
+                                        className="hidden"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First name</label>
+                                        <input
+                                            type="text"
+                                            name="first_name"
+                                            value={form.first_name}
+                                            onChange={handleChange}
+                                            placeholder="Jane"
+                                            className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last name</label>
+                                        <input
+                                            type="text"
+                                            name="last_name"
+                                            value={form.last_name}
+                                            onChange={handleChange}
+                                            placeholder="Doe"
+                                            className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd]"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                                    <input
+                                        type="text"
+                                        value={user?.email || ''}
+                                        disabled
+                                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-100 dark:bg-[#0a0a0a] text-gray-400 dark:text-gray-500"
+                                    />
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bio</label>
+                                    <textarea
+                                        name="bio"
+                                        value={form.bio}
+                                        onChange={handleChange}
+                                        placeholder="Tell us about yourself..."
+                                        rows={3}
+                                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] resize-none"
+                                    />
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Interests</label>
+                                    <InterestsPicker selected={interests} onChange={setInterests} />
+                                    {interestSuccess && (
+                                        <p className="text-xs text-green-600 dark:text-green-400 mt-2">{interestSuccess}</p>
+                                    )}
+                                    <button
+                                        onClick={handleSaveInterests}
+                                        disabled={savingInterests}
+                                        className="mt-3 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:border-[#9440dd] hover:text-[#9440dd] transition disabled:opacity-50"
+                                    >
+                                        {savingInterests ? 'Saving...' : 'Update interests'}
+                                    </button>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={saving}
+                                        className="flex-1 bg-[#9440dd] text-white py-2.5 rounded-xl text-sm font-medium hover:bg-[#7d36c0] transition disabled:opacity-50"
+                                    >
+                                        {saving ? 'Saving...' : 'Save changes'}
+                                    </button>
+                                    <button
+                                        onClick={handleCancel}
+                                        className="flex-1 border border-gray-200 dark:border-gray-700 py-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:border-gray-400 transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
                         )}
 
                         {/* Tab switcher */}

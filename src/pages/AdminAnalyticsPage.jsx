@@ -5,6 +5,7 @@ import {
     XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { getAdminAnalytics } from '../services/admin';
+import { Link } from 'react-router-dom';
 
 export default function AdminAnalyticsPage() {
     const [data, setData]       = useState(null);
@@ -35,6 +36,16 @@ export default function AdminAnalyticsPage() {
             <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-20 md:pb-8">
 
                 <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Platform analytics</h1>
+
+                <div className="flex items-center justify-between mb-6">
+                    <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Platform analytics</h1>
+                    <Link
+                        to="/admin"
+                        className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-[#9440dd] hover:text-[#9440dd] transition"
+                    >
+                        🛠 Admin dashboard
+                    </Link>
+                </div>
 
                 {/* Loading */}
                 {loading && (
