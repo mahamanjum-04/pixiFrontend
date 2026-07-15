@@ -59,7 +59,7 @@ function CheckoutForm({ artwork, onSuccess, onClose }) {
             >
                 {submitting ? 'Processing...' : `Pay $${artwork.price}`}
             </button>
-            <button type="button" onClick={onClose} className="text-sm text-gray-500">
+            <button type="button" onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700 transition">
                 Cancel
             </button>
         </form>
@@ -68,12 +68,32 @@ function CheckoutForm({ artwork, onSuccess, onClose }) {
 
 export default function PurchaseModal({ artwork, clientSecret, onSuccess, onClose }) {
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 w-full max-w-md">
-                <h2 className="text-lg font-semibold mb-4">Complete your purchase</h2>
-                <Elements key={clientSecret} stripe={getStripe()} options={{ clientSecret }}>
-                    <CheckoutForm artwork={artwork} onSuccess={onSuccess} onClose={onClose} />
-                </Elements>
+        <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+                // Close modal when clicking the backdrop
+                if (e.target === e.currentTarget) onClose();
+            }}
+        >
+            <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 w-full max-w-md max-h-[90vh] flex flex-col">
+                <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Complete your purchase</h2>
+                    <button
+                        onClick={onClose}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
+                    >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Scrollable content */}
+                <div className="overflow-y-auto flex-1 pr-1 -mr-1">
+                    <Elements key={clientSecret} stripe={getStripe()} options={{ clientSecret }}>
+                        <CheckoutForm artwork={artwork} onSuccess={onSuccess} onClose={onClose} />
+                    </Elements>
+                </div>
             </div>
         </div>
     );
