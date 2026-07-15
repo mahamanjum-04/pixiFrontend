@@ -181,10 +181,19 @@ export default function ProfilePage() {
             };
             setAuth(tokens, res.data);
 
+            // Sync local form/preview state directly from the server response
+            setForm({
+                first_name: res.data.first_name || '',
+                last_name: res.data.last_name || '',
+                bio: res.data.bio || '',
+            });
+            setPreview(res.data.avatar || null);
+
             setSuccess('Profile updated.');
             setEditing(false);
             setAvatar(null);
-        } catch {
+        } catch (err) {
+            console.error('Save profile error:', err);
             setError('Failed to save profile.');
         } finally {
             setSaving(false);
