@@ -51,16 +51,15 @@ export function AuthProvider({ children }) {
     const login = async (email, password) => {
         try {
             const response = await api.post('/api/auth/login/', { email, password });
+            const loggedInUser = response.data.user;
 
-            // Save tokens
             localStorage.setItem('access_token', response.data.access);
             localStorage.setItem('refresh_token', response.data.refresh);
-            localStorage.setItem('user', JSON.stringify(user));
-
+            localStorage.setItem('user', JSON.stringify(loggedInUser));
             setAccessToken(response.data.access);
-            setUser(response.data.user);
+            setUser(loggedInUser);
 
-            return { success: true, user };
+            return { success: true, user: loggedInUser };
         } catch (error) {
             return {
                 success: false,

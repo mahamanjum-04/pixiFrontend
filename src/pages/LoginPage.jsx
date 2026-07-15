@@ -122,8 +122,8 @@ export default function LoginPage() {
                     />
                 </div>
 
-                <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1 text-center">Welcome back</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 text-center">Sign in to your PIXI account</p>
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-400 mb-6 text-center">Welcome back</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-100 mb-1 text-center">Sign in to your PIXI account</p>
 
                 {error && (
                     <div className="mb-4 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
