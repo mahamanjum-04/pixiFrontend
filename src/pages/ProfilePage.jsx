@@ -286,6 +286,22 @@ export default function ProfilePage() {
                                         Edit profile
                                     </button>
                                 )}
+                                {isOwnProfile && user?.is_creator && (
+                                    <Link
+                                        to="/analytics"
+                                        className="px-4 py-2 bg-[#9440dd] text-white rounded-xl text-sm font-medium hover:bg-[#7d36c0] transition"
+                                    >
+                                        📊 Creator analytics
+                                    </Link>
+                                )}
+                                {isOwnProfile && (user?.is_superuser || user?.is_staff) && (
+                                    <Link
+                                        to="/admin/analytics"
+                                        className="px-4 py-2 bg-[#9440dd] text-white rounded-xl text-sm font-medium hover:bg-[#7d36c0] transition"
+                                    >
+                                        📊 Admin analytics
+                                    </Link>
+                                )}
                                 {!isOwnProfile && (
                                     <button
                                         onClick={() => setShowReport(r => !r)}
