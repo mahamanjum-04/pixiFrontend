@@ -23,6 +23,7 @@ const AdminDashboardPage   = lazy(() => import('./pages/AdminDashboardPage'));
 const AdminAnalyticsPage   = lazy(() => import('./pages/AdminAnalyticsPage'));
 const ProfilePage          = lazy(() => import('./pages/ProfilePage'));
 const InterestsPage        = lazy(() => import('./pages/InterestsPage'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 
 export default function App() {
   return (
@@ -58,6 +59,8 @@ export default function App() {
 
                   {/* Interests */}
                   <Route path="/interests" element={<ProtectedRoute><InterestsPage /></ProtectedRoute>} />
+
+                  <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
               </Routes>
       </Suspense>
