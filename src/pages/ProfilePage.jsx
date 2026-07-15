@@ -288,13 +288,29 @@ export default function ProfilePage() {
                                         Edit profile
                                     </button>
                                 )}
-                                {isOwnProfile && user?.is_creator && (
+                                {isOwnProfile && user?.is_creator && !(user?.is_superuser || user?.is_staff) && (
                                     <Link
                                         to="/analytics"
                                         className="px-4 py-2 bg-[#9440dd] text-white rounded-xl text-sm font-medium hover:bg-[#7d36c0] transition"
                                     >
                                         📊 Creator analytics
                                     </Link>
+                                )}
+                                {isOwnProfile && (user?.is_superuser || user?.is_staff) && (
+                                    <>
+                                        <Link
+                                            to="/admin"
+                                            className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-[#9440dd] hover:text-[#9440dd] transition"
+                                        >
+                                            🛠 Admin dashboard
+                                        </Link>
+                                        <Link
+                                            to="/admin/analytics"
+                                            className="px-4 py-2 bg-[#9440dd] text-white rounded-xl text-sm font-medium hover:bg-[#7d36c0] transition"
+                                        >
+                                            📊 Admin analytics
+                                        </Link>
+                                    </>
                                 )}
                                 {isOwnProfile && (user?.is_superuser || user?.is_staff) && (
                                     <Link
