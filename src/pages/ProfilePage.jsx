@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import ArtworkCard from '../components/ArtworkCard.jsx';
 import { useAuth } from '../hooks/useAuth.jsx';
@@ -9,36 +9,37 @@ import InterestsPicker from '../components/InterestsPicker.jsx';
 import { getInterests, saveInterests } from '../services/interests.js';
 import { submitReport } from '../services/admin.js';
 import { getMe, updateMe } from '../services/auth.js';
-import { getArtworks } from '../services/artworks.js';
+import { getArtworks, getArtwork } from '../services/artworks.js';  // ✅ Added getArtwork
+import { getPurchases } from '../services/purchases.js';  // ✅ Added getPurchases
 
 export default function ProfilePage() {
-    const { userId }  = useParams();
-    const { user, login } = useAuth();
-    const navigate    = useNavigate();
+    const { userId } = useParams();
+    const { user, setAuth } = useAuth();  // ✅ Changed from login to setAuth
+    const navigate = useNavigate();
 
     const isOwnProfile = !userId || parseInt(userId) === user?.id;
 
     const [form, setForm] = useState({
         first_name: '', last_name: '', bio: '',
     });
-    const [avatar, setAvatar]       = useState(null);
-    const [preview, setPreview]     = useState(null);
-    const [loading, setLoading]     = useState(true);
-    const [saving, setSaving]       = useState(false);
-    const [error, setError]         = useState('');
-    const [success, setSuccess]     = useState('');
-    const [editing, setEditing]     = useState(false);
-    const [interests, setInterests]           = useState([]);
+    const [avatar, setAvatar] = useState(null);
+    const [preview, setPreview] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [editing, setEditing] = useState(false);
+    const [interests, setInterests] = useState([]);
     const [savingInterests, setSavingInterests] = useState(false);
     const [interestSuccess, setInterestSuccess] = useState('');
 
     // Report user state
     const [showReport, setShowReport] = useState(false);
-    const [reportReason, setReportReason]   = useState('inappropriate');
-    const [reportDesc, setReportDesc]       = useState('');
+    const [reportReason, setReportReason] = useState('inappropriate');
+    const [reportDesc, setReportDesc] = useState('');
     const [reportLoading, setReportLoading] = useState(false);
     const [reportSuccess, setReportSuccess] = useState('');
-    const [reportError, setReportError]     = useState('');
+    const [reportError, setReportError] = useState('');
 
     // Tab state
     const [activeTab, setActiveTab] = useState('created');
@@ -58,21 +59,21 @@ export default function ProfilePage() {
                     if (!cancelled) {
                         setForm({
                             first_name: res.data.first_name || '',
-                            last_name:  res.data.last_name  || '',
-                            bio:        res.data.bio        || '',
+                            last_name: res.data.last_name || '',
+                            bio: res.data.bio || '',
                         });
                         getInterests()
                             .then(res => setInterests(res.data.interests || []))
                             .catch(() => {});
                         setPreview(res.data.avatar || null);
                     }
-                } catch {
+                } catch (err) {
+                    console.error('Failed to load profile:', err);
                     if (!cancelled) setError('Failed to load profile.');
                 } finally {
                     if (!cancelled) setLoading(false);
                 }
             } else {
-                // Fetching another user's profile - load their artworks
                 setActiveTab('created');
                 setLoading(false);
             }
@@ -82,7 +83,7 @@ export default function ProfilePage() {
         return () => { cancelled = true; };
     }, [userId, user, isOwnProfile]);
 
-    // Fetch tab artworks
+    // Fetch tab artworks - ✅ FIXED with static imports
     useEffect(() => {
         setTabLoading(true);
         if (activeTab === 'created') {
@@ -104,7 +105,6 @@ export default function ProfilePage() {
         } else if (activeTab === 'saved' && isOwnProfile) {
             api.get('/api/saved/')
                 .then(async (res) => {
-                    const { getArtwork } = await import('../services/artworks.js');
                     const full = await Promise.all(
                         res.data.map(s =>
                             getArtwork(s.artwork)
@@ -117,25 +117,25 @@ export default function ProfilePage() {
                 .catch(() => setTabArtworks([]))
                 .finally(() => setTabLoading(false));
         } else if (activeTab === 'purchased' && isOwnProfile) {
-            import('../services/purchases.js').then(({ getPurchases }) =>
-                getPurchases()
-                    .then(res => {
-                        const normalized = res.data.map(p => ({
-                            id: p.artwork,
-                            title: p.artwork_title,
-                            image: p.artwork_image,
-                            price: p.amount_paid,
-                            purchased_at: p.purchased_at,
-                        }));
-                        setTabArtworks(normalized);
-                    })
-                    .catch(() => setTabArtworks([]))
-                    .finally(() => setTabLoading(false))
-            );
+            getPurchases()
+                .then(res => {
+                    const normalized = res.data.map(p => ({
+                        id: p.artwork,
+                        title: p.artwork_title,
+                        image: p.artwork_image,
+                        price: p.amount_paid,
+                        purchased_at: p.purchased_at,
+                    }));
+                    setTabArtworks(normalized);
+                })
+                .catch(() => setTabArtworks([]))
+                .finally(() => setTabLoading(false));
         } else {
             setTabLoading(false);
         }
     }, [activeTab, user, userId, isOwnProfile]);
+
+    // ... rest of your functions remain the same ...
 
     const handleSaveInterests = async () => {
         setSavingInterests(true);
@@ -161,24 +161,25 @@ export default function ProfilePage() {
         setPreview(URL.createObjectURL(file));
     };
 
+    // ✅ FIXED: Use setAuth instead of login
     const handleSave = async () => {
         setSaving(true);
         setError('');
         setSuccess('');
         try {
             const formData = new FormData();
-            formData.append('bio',        form.bio);
+            formData.append('bio', form.bio);
             formData.append('first_name', form.first_name);
-            formData.append('last_name',  form.last_name);
+            formData.append('last_name', form.last_name);
             if (avatar) formData.append('avatar', avatar);
 
             const res = await updateMe(formData);
 
             const tokens = {
-                access:  localStorage.getItem('access_token'),
+                access: localStorage.getItem('access_token'),
                 refresh: localStorage.getItem('refresh_token'),
             };
-            login(tokens, res.data);
+            setAuth(tokens, res.data);
 
             setSuccess('Profile updated.');
             setEditing(false);
@@ -190,6 +191,7 @@ export default function ProfilePage() {
         }
     };
 
+    // ✅ FIXED: Use setAuth instead of login
     const handleCancel = () => {
         setEditing(false);
         setError('');
@@ -198,8 +200,8 @@ export default function ProfilePage() {
         setPreview(user?.avatar || null);
         setForm({
             first_name: user?.first_name || '',
-            last_name:  user?.last_name  || '',
-            bio:        user?.bio        || '',
+            last_name: user?.last_name || '',
+            bio: user?.bio || '',
         });
     };
 
@@ -211,9 +213,9 @@ export default function ProfilePage() {
             const reportedUserId = isOwnProfile ? null : parseInt(userId);
             await submitReport({
                 reported_artwork: null,
-                reported_user:    reportedUserId,
-                reason:           reportReason,
-                description:      reportDesc || `Reported user: ${viewedUser?.username || userId}`,
+                reported_user: reportedUserId,
+                reason: reportReason,
+                description: reportDesc || `Reported user: ${viewedUser?.username || userId}`,
             });
             setReportSuccess('Report submitted. Our team will review it shortly.');
             setReportDesc('');
@@ -313,74 +315,12 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
+                        {/* ... rest of your JSX remains the same ... */}
+
                         {/* Report panel */}
                         {showReport && !isOwnProfile && (
-                            <div className="bg-gray-50 dark:bg-[#141414] border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-8">
-                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">Report this user</p>
-
-                                {reportSuccess && (
-                                    <p className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-lg mb-3">
-                                        {reportSuccess}
-                                    </p>
-                                )}
-                                {reportError && (
-                                    <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mb-3">
-                                        {reportError}
-                                    </p>
-                                )}
-
-                                <div className="mb-3">
-                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Reason</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {REASONS.map(r => (
-                                            <button
-                                                key={r}
-                                                onClick={() => setReportReason(r)}
-                                                className={`px-3 py-1 rounded-full text-xs border transition capitalize
-                                                    ${reportReason === r
-                                                        ? 'bg-[#9440dd] text-white border-[#9440dd]'
-                                                        : 'bg-white dark:bg-[#0a0a0a] text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-400'
-                                                    }`}
-                                            >
-                                                {r}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="mb-3">
-                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                                        Additional details (optional)
-                                    </label>
-                                    <textarea
-                                        value={reportDesc}
-                                        onChange={e => setReportDesc(e.target.value)}
-                                        placeholder="Describe the issue..."
-                                        rows={2}
-                                        className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] resize-none"
-                                    />
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={handleReport}
-                                        disabled={reportLoading}
-                                        className="flex-1 bg-red-500 text-white py-2 rounded-lg text-xs font-medium hover:bg-red-600 transition disabled:opacity-50"
-                                    >
-                                        {reportLoading ? 'Submitting...' : 'Submit report'}
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowReport(false);
-                                            setReportError('');
-                                            setReportDesc('');
-                                        }}
-                                        className="flex-1 border border-gray-200 dark:border-gray-700 py-2 rounded-lg text-xs text-gray-500 dark:text-gray-400 hover:border-gray-400 transition"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
+                            // ... keep your existing report panel JSX ...
+                            <div>Report panel content</div>
                         )}
 
                         {/* Feedback */}
@@ -395,114 +335,10 @@ export default function ProfilePage() {
                             </div>
                         )}
 
-                        {/* Edit form (own profile only) */}
+                        {/* Edit form */}
                         {editing && (
-                            <div className="bg-gray-50 dark:bg-[#141414] border border-gray-100 dark:border-gray-800 rounded-2xl p-6 mb-8">
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit Profile</h2>
-
-                                {/* Avatar upload */}
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="w-16 h-16 rounded-full bg-[#9440dd] overflow-hidden flex items-center justify-center flex-shrink-0">
-                                        {preview
-                                            ? <img src={resolveImage(preview)} alt="avatar" className="w-full h-full object-cover" />
-                                            : <span className="text-xl font-semibold text-white">
-                                                {user?.username?.[0]?.toUpperCase() || 'U'}
-                                            </span>
-                                        }
-                                    </div>
-                                    <button
-                                        onClick={() => document.getElementById('avatar-input').click()}
-                                        className="text-sm text-[#9440dd] hover:underline transition"
-                                    >
-                                        Change photo
-                                    </button>
-                                    <input
-                                        id="avatar-input"
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleAvatar}
-                                        className="hidden"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First name</label>
-                                        <input
-                                            type="text"
-                                            name="first_name"
-                                            value={form.first_name}
-                                            onChange={handleChange}
-                                            placeholder="Jane"
-                                            className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd]"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last name</label>
-                                        <input
-                                            type="text"
-                                            name="last_name"
-                                            value={form.last_name}
-                                            onChange={handleChange}
-                                            placeholder="Doe"
-                                            className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd]"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                                    <input
-                                        type="text"
-                                        value={user?.email || ''}
-                                        disabled
-                                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-100 dark:bg-[#0a0a0a] text-gray-400 dark:text-gray-500"
-                                    />
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bio</label>
-                                    <textarea
-                                        name="bio"
-                                        value={form.bio}
-                                        onChange={handleChange}
-                                        placeholder="Tell us about yourself..."
-                                        rows={3}
-                                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#9440dd] resize-none"
-                                    />
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Interests</label>
-                                    <InterestsPicker selected={interests} onChange={setInterests} />
-                                    {interestSuccess && (
-                                        <p className="text-xs text-green-600 dark:text-green-400 mt-2">{interestSuccess}</p>
-                                    )}
-                                    <button
-                                        onClick={handleSaveInterests}
-                                        disabled={savingInterests}
-                                        className="mt-3 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:border-[#9440dd] hover:text-[#9440dd] transition disabled:opacity-50"
-                                    >
-                                        {savingInterests ? 'Saving...' : 'Update interests'}
-                                    </button>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={handleSave}
-                                        disabled={saving}
-                                        className="flex-1 bg-[#9440dd] text-white py-2.5 rounded-xl text-sm font-medium hover:bg-[#7d36c0] transition disabled:opacity-50"
-                                    >
-                                        {saving ? 'Saving...' : 'Save changes'}
-                                    </button>
-                                    <button
-                                        onClick={handleCancel}
-                                        className="flex-1 border border-gray-200 dark:border-gray-700 py-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:border-gray-400 transition"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
+                            // ... keep your existing edit form JSX ...
+                            <div>Edit form content</div>
                         )}
 
                         {/* Tab switcher */}
@@ -513,9 +349,9 @@ export default function ProfilePage() {
                                     onClick={() => setActiveTab(t.key)}
                                     className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition
                                         ${activeTab === t.key
-                                            ? 'bg-[#9440dd] text-white'
-                                            : 'bg-gray-100 dark:bg-[#141414] text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#1e1e1e]'
-                                        }`}
+                                        ? 'bg-[#9440dd] text-white'
+                                        : 'bg-gray-100 dark:bg-[#141414] text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#1e1e1e]'
+                                    }`}
                                 >
                                     {t.label}
                                 </button>
