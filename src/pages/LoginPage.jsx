@@ -33,11 +33,6 @@ export default function LoginPage() {
             if (result.success) {
                 const user = result.user;
 
-                if (user.is_banned) {
-                    setShowBanned(true);
-                    return;
-                }
-
                 if (user.is_superuser || user.is_staff) {
                     navigate('/admin');
                 } else if (!user.has_set_interests) {
@@ -72,11 +67,6 @@ export default function LoginPage() {
                 const res = await googleLoginRequest({ access_token: response.credential });
                 const { access, refresh, user } = res.data;
                 setAuth({ access, refresh }, user);
-
-                if (user.is_banned) {
-                    setShowBanned(true);
-                    return;
-                }
 
                 if (user.is_superuser || user.is_staff) navigate('/admin');
                 else if (!user.has_set_interests) navigate('/interests');
