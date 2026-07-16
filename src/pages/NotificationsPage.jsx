@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
-import { getNotifications, markRead } from '../services/notifications.js';
-
+import { getNotifications, markRead, deleteNotification } from '../services/notifications.js';
 const TYPE_META = {
     purchase:          { icon: '💰', label: 'Purchase' },
     message_request:   { icon: '💬', label: 'Message request' },
@@ -40,6 +39,15 @@ export default function NotificationsPage() {
         const unread = notifications.filter(n => !n.is_read);
         unread.forEach(n => markRead(n.id).catch(() => {}));
         setNotifications(prev => prev.map(p => ({ ...p, is_read: true })));
+    };
+
+    const handleDelete = (id, e) => {
+        e.stopPropagation();
+        deleteNotification(id)
+            .then(() => {
+                setNotifications(prev => prev.filter(n => n.id !== id));
+            })
+            .catch(() => {});
     };
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -108,6 +116,15 @@ export default function NotificationsPage() {
                                             {new Date(n.created_at).toLocaleString()}
                                         </p>
                                     </div>
+                                    <button
+                                        onClick={(e) => handleDelete(n.id, e)}
+                                        className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-gray-300 dark:text-gray-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-400 transition"
+                                        aria-label="Remove notification"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
                                 </div>
                             );
                         })}
