@@ -1,62 +1,69 @@
 // src/pages/LoginPage.jsx
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { googleLogin as googleLoginRequest } from '../services/auth.js';  // only for Google
+import { googleLogin as googleLoginRequest } from '../services/auth.js';
 import { useAuth } from '../hooks/useAuth.jsx';
 import useDarkMode from '../hooks/useDarkMode.js';
 
 export default function LoginPage() {
-    const { login, setAuth } = useAuth();   // ✅ get setAuth for Google
+    const { login, setAuth, logout } = useAuth();
     const navigate = useNavigate();
     const [dark] = useDarkMode();
 
-    // ✅ State uses 'email' consistently
     const [form, setForm] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
+    const [showBanned, setShowBanned] = useState(false);
 
     const handleChange = e =>
         setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
-    // ── Normal login ────────────────────────────────────────────────
     const handleSubmit = async () => {
-    setError('');
-    if (!form.email || !form.password) {
-        setError('Please fill in all fields.');
-        return;
-    }
-    setLoading(true);
-    try {
-        const result = await login(form.email, form.password);
-        console.log('Login result:', result);   // ✅ Add this to debug
-
-        if (result.success) {
-            const user = result.user;
-            console.log('User from result:', user);
-
-            if (user.is_superuser || user.is_staff) {
-                navigate('/admin');
-            } else if (!user.has_set_interests) {
-                navigate('/interests');
-            } else if (user.is_creator) {
-                navigate('/portfolio');
-            } else {
-                navigate('/browse');
-            }
-        } else {
-            setError(result.error || 'Invalid email or password.');
+        setError('');
+        if (!form.email || !form.password) {
+            setError('Please fill in all fields.');
+            return;
         }
-    } catch (err) {
-        console.error('Unexpected error:', err);   // ✅ Debug
-        setError('Something went wrong. Please try again.');
-    } finally {
-        setLoading(false);
-    }
-};
+        setLoading(true);
+        try {
+            const result = await login(form.email, form.password);
 
-    // ── Google login ──────────────────────────────────────────────────
+            if (result.success) {
+                const user = result.user;
+
+                if (user.is_banned) {
+                    setShowBanned(true);
+                    return;
+                }
+
+                if (user.is_superuser || user.is_staff) {
+                    navigate('/admin');
+                } else if (!user.has_set_interests) {
+                    navigate('/interests');
+                } else if (user.is_creator) {
+                    navigate('/portfolio');
+                } else {
+                    navigate('/browse');
+                }
+            } else {
+                setError(result.error || 'Invalid email or password.');
+            }
+        } catch (err) {
+            console.error('Unexpected error:', err);
+            setError('Something went wrong. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleBannedOk = () => {
+        setShowBanned(false);
+        logout();
+        navigate('/login');
+    };
+
+    // ── Google login ── (unchanged, but add the same is_banned check)
     useEffect(() => {
         const handleCredentialResponse = async (response) => {
             setError('');
@@ -64,8 +71,13 @@ export default function LoginPage() {
             try {
                 const res = await googleLoginRequest({ access_token: response.credential });
                 const { access, refresh, user } = res.data;
-                // ✅ Use setAuth (new method) to store tokens and user
                 setAuth({ access, refresh }, user);
+
+                if (user.is_banned) {
+                    setShowBanned(true);
+                    return;
+                }
+
                 if (user.is_superuser || user.is_staff) navigate('/admin');
                 else if (!user.has_set_interests) navigate('/interests');
                 else if (user.is_creator) navigate('/portfolio');
@@ -76,6 +88,7 @@ export default function LoginPage() {
                 setGoogleLoading(false);
             }
         };
+        // ... rest of the effect stays exactly the same
 
         const initGoogle = () => {
             if (window.google && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
@@ -190,6 +203,27 @@ export default function LoginPage() {
                 )}
 
             </div>
+
+            {/* Banned user modal */}
+            {showBanned && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+                    <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 w-full max-w-sm text-center">
+                        <div className="text-4xl mb-3">🚫</div>
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            Account suspended
+                        </h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                            Your account has been banned for violating our community guidelines. If you believe this is a mistake, please contact support.
+                        </p>
+                        <button
+                            onClick={handleBannedOk}
+                            className="w-full bg-[#9440dd] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[#7d36c0] transition"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
