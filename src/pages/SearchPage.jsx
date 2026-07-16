@@ -16,13 +16,14 @@ export default function SearchPage() {
             return null;
         }
     })();
-    const [tab, setTab] = useState('text');
-    const [query, setQuery] = useState('');
-    const [imageFile, setImageFile] = useState(null);
-    const [results, setResults] = useState([]);
+    const [tab, setTab] = useState(restored?.tab || 'text');
+    const [query, setQuery] = useState(restored?.query || '');
+    const [imageFile, setImageFile] = useState(null); // File objects can't be persisted
+    const [imagePreview, setImagePreview] = useState(restored?.imagePreview || null);
+    const [results, setResults] = useState(restored?.results || []);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [searched, setSearched] = useState(false);
+    const [searched, setSearched] = useState(restored?.searched || false);
 
     useEffect(() => {
         try {
