@@ -549,12 +549,6 @@ export default function ProfilePage() {
                             </div>
                         )}
 
-                        {!tabLoading && tabArtworks.length === 0 && (
-                            <div className="text-center py-10 text-gray-400 dark:text-gray-500 text-sm">
-                                Nothing here yet.
-                            </div>
-                        )}
-
                         {!tabLoading && tabArtworks.length > 0 && (
                             <div className="columns-2 sm:columns-3 lg:columns-4 gap-3">
                                 {tabArtworks.map(a => (
