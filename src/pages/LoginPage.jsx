@@ -127,7 +127,6 @@ export default function LoginPage() {
             {/* ===== LEFT: Brand panel ===== */}
             <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden bg-gradient-to-br from-[#9440dd] to-[#5b2490] flex-col justify-between p-12">
 
-                {/* Decorative corner-frame brackets — evokes a gallery viewfinder */}
                 <svg className="absolute inset-0 w-full h-full opacity-40" viewBox="0 0 500 800" fill="none" preserveAspectRatio="none">
                     <path d="M40 60 L40 40 L60 40" stroke="white" strokeWidth="2" strokeLinecap="round" />
                     <path d="M440 40 L460 40 L460 60" stroke="white" strokeWidth="2" strokeLinecap="round" />
@@ -140,16 +139,16 @@ export default function LoginPage() {
                     <circle cx="60" cy="600" r="2" fill="white" />
                 </svg>
 
-                {/* Large soft ring — a "canvas" motif */}
                 <div className="absolute -right-24 -bottom-24 w-96 h-96 rounded-full border border-white/20" />
                 <div className="absolute -right-16 -bottom-16 w-72 h-72 rounded-full border border-white/10" />
 
-                {/* Logo */}
+                {/* Logo — use light-logo.png (white background) in a white card */}
                 <div className="relative z-10">
-                    <img src="/assets/dark-logo.png" alt="PIXI" className="h-9 brightness-0 invert" />
+                    <div className="inline-block bg-white rounded-xl px-4 py-2.5 shadow-sm">
+                        <img src="/assets/light-logo.png" alt="PIXI" className="h-7" />
+                    </div>
                 </div>
 
-                {/* Tagline */}
                 <div className="relative z-10 max-w-sm">
                     <h1 className="text-4xl font-semibold text-white leading-tight mb-4">
                         Where art finds its audience
@@ -159,7 +158,6 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                {/* Spacer footer note */}
                 <p className="relative z-10 text-white/40 text-xs">
                     © {new Date().getFullYear()} PIXI
                 </p>
@@ -169,7 +167,6 @@ export default function LoginPage() {
             <div className="flex-1 flex items-center justify-center px-4 py-12">
                 <div className="w-full max-w-sm">
 
-                    {/* Logo — mobile/tablet only, since brand panel is hidden below lg */}
                     <div className="flex lg:hidden justify-center mb-6">
                         <img
                             src={dark ? "/assets/dark-logo.png" : "/assets/light-logo.png"}
@@ -248,7 +245,6 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            {/* Banned user modal */}
             {showBanned && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
                     <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 w-full max-w-sm text-center">
