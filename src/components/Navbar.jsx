@@ -120,8 +120,11 @@ export default function Navbar() {
 
                             {/* Profile avatar */}
                             <Link to="/profile">
-                                <div className="w-9 h-9 rounded-full bg-[#9440dd] flex items-center justify-center text-xs font-semibold text-white">
-                                    {user?.username?.[0]?.toUpperCase() || 'U'}
+                                <div className="w-9 h-9 rounded-full bg-[#9440dd] overflow-hidden flex items-center justify-center text-xs font-semibold text-white">
+                                    {user?.avatar_url
+                                        ? <img src={user.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                                        : (user?.username?.[0]?.toUpperCase() || 'U')
+                                    }
                                 </div>
                             </Link>
 
@@ -195,14 +198,13 @@ export default function Navbar() {
             {/* ===== MOBILE BOTTOM TAB BAR ===== */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#141414] border-t border-gray-100 dark:border-gray-800 px-2 py-1.5 flex items-center justify-around">
                 {(user?.is_superuser || user?.is_staff) ? (
-                    <Link
-                        to="/profile"
-                        className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition ${isActive('/profile') ? 'text-[#9440dd]' : 'text-gray-400'}`}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={isActive('/profile') ? 2.5 : 1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                        <span className="text-[10px] font-medium">Profile</span>
+                    <Link to="/profile">
+                        <div className="w-9 h-9 rounded-full bg-[#9440dd] overflow-hidden flex items-center justify-center text-xs font-semibold text-white">
+                            {user?.avatar_url
+                                ? <img src={user.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                                : (user?.username?.[0]?.toUpperCase() || 'U')
+                            }
+                        </div>
                     </Link>
                 ) : (
                     <>

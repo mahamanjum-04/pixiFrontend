@@ -65,7 +65,7 @@ export default function ProfilePage() {
                         getInterests()
                             .then(res => setInterests(res.data.interests || []))
                             .catch(() => {});
-                        setPreview(res.data.avatar || null);
+                        setPreview(res.data.avatar_url || null);
                     }
                 } catch (err) {
                     console.error('Failed to load profile:', err);
@@ -187,7 +187,7 @@ export default function ProfilePage() {
                 last_name: res.data.last_name || '',
                 bio: res.data.bio || '',
             });
-            setPreview(res.data.avatar || null);
+            setPreview(res.data.avatar_url || null);
 
             setSuccess('Profile updated.');
             setEditing(false);
@@ -206,7 +206,7 @@ export default function ProfilePage() {
         setError('');
         setSuccess('');
         setAvatar(null);
-        setPreview(user?.avatar || null);
+        setPreview(user?.avatar_url || null);
         setForm({
             first_name: user?.first_name || '',
             last_name: user?.last_name || '',
