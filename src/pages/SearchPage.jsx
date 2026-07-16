@@ -1,18 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar.jsx';
 import ArtworkCard from '../components/ArtworkCard.jsx';
 import { searchByText, searchByImage } from '../services/search.js';
 import { getArtwork } from '../services/artworks.js';
 
+const SEARCH_STATE_KEY = 'pixi_search_state';
+
 export default function SearchPage() {
+
+    const restored = (() => {
+        try {
+            const saved = sessionStorage.getItem(SEARCH_STATE_KEY);
+            return saved ? JSON.parse(saved) : null;
+        } catch {
+            return null;
+        }
+    })();
     const [tab, setTab] = useState('text');
     const [query, setQuery] = useState('');
     const [imageFile, setImageFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [searched, setSearched] = useState(false);
+
+    useEffect(() => {
+        try {
+            sessionStorage.setItem(SEARCH_STATE_KEY, JSON.stringify({
+                tab, query, imagePreview, results, searched,
+            }));
+        } catch {
+            // sessionStorage might be full or unavailable — fail silently
+        }
+    }, [tab, query, imagePreview, results, searched]);
 
     const fetchArtworkDetails = async (searchResults) => {
         const artworks = await Promise.all(

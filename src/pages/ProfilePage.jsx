@@ -283,6 +283,11 @@ export default function ProfilePage() {
                                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                                     {displayRole}
                                 </p>
+                                {isOwnProfile && (user?.first_name || user?.last_name) && !editing && (
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 font-medium">
+                                        {[user?.first_name, user?.last_name].filter(Boolean).join(' ')}
+                                    </p>
+                                )}
                                 {isOwnProfile && user?.bio && !editing && (
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{user.bio}</p>
                                 )}
