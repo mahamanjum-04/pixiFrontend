@@ -143,4 +143,3 @@ The app is deployed on **Vercel**. Set the environment variables above in the Ve
 
 - `pixiBackend` — Django REST API (auth, artworks, purchases, messaging, admin, notifications)
 - `pixi-ai-service` — FastAPI service providing text/image embeddings and semantic search (Qdrant-backed)
-```
