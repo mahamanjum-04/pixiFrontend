@@ -1,6 +1,3 @@
-Here's the README in plain markdown text — copy it straight into `README.md`:
-
-```markdown
 # Pixi — Frontend
 
 Pixi is a marketplace where creators list and sell original artwork, and buyers browse, purchase, and message creators directly. This repository is the React frontend, deployed on Vercel and backed by the Pixi Django API.
